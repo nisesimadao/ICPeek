@@ -1,0 +1,14 @@
+[
+    {
+        "merged": "com.icpeek.app-mergeDebugResources-27:/layout/transaction_item.xml",
+        "source": "com.icpeek.app-main-30:/layout/transaction_item.xml"
+    },
+    {
+        "merged": "com.icpeek.app-mergeDebugResources-27:/layout/activity_main.xml",
+        "source": "com.icpeek.app-main-30:/layout/activity_main.xml"
+    },
+    {
+        "merged": "com.icpeek.app-mergeDebugResources-27:/layout/activity_transaction_detail.xml",
+        "source": "com.icpeek.app-main-30:/layout/activity_transaction_detail.xml"
+    }
+]
