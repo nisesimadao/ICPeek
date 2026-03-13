@@ -139,7 +139,7 @@ implementation 'org.jetbrains.kotlin:kotlin-parcelize-runtime:1.8.22'
 
 ## 📄 ライセンス
 
-MIT License - 詳細はLICENSEファイルをご確認ください
+[MIT License](LICENSE)
 
 ## 🤝 貢献
 

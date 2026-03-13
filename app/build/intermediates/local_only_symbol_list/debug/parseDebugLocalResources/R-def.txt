@@ -17,8 +17,8 @@ id historyTitleTextView
 id instructionTextView
 id logScrollView
 id logTextView
-id nfcIcon
 id rawDataTextView
+id statusLayout
 id statusTextView
 id titleTextView
 id transactionAmountChangeTextView

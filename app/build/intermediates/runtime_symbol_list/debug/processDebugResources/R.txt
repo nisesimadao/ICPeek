@@ -3330,7 +3330,6 @@ int id navigation_header_container 0x7f08013a
 int id never 0x7f08013b
 int id neverCompleteToEnd 0x7f08013c
 int id neverCompleteToStart 0x7f08013d
-int id nfcIcon 0x7f08013e
 int id noScroll 0x7f08013f
 int id noState 0x7f080140
 int id none 0x7f080141
@@ -3443,6 +3442,7 @@ int id startToEnd 0x7f0801ab
 int id startVertical 0x7f0801ac
 int id staticLayout 0x7f0801ad
 int id staticPostLayout 0x7f0801ae
+int id statusLayout 0x7f080200
 int id statusTextView 0x7f0801af
 int id stop 0x7f0801b0
 int id stretch 0x7f0801b1

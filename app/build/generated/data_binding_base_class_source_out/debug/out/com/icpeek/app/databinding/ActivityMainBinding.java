@@ -4,7 +4,6 @@ package com.icpeek.app.databinding;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -50,7 +49,7 @@ public final class ActivityMainBinding implements ViewBinding {
   public final TextView logTextView;
 
   @NonNull
-  public final ImageView nfcIcon;
+  public final LinearLayout statusLayout;
 
   @NonNull
   public final TextView statusTextView;
@@ -62,8 +61,9 @@ public final class ActivityMainBinding implements ViewBinding {
       @NonNull TextView cardTypeTextView, @NonNull LinearLayout debugSection,
       @NonNull LinearLayout historyLayout, @NonNull ScrollView historyScrollView,
       @NonNull TextView historyTitleTextView, @NonNull TextView instructionTextView,
-      @NonNull ScrollView logScrollView, @NonNull TextView logTextView, @NonNull ImageView nfcIcon,
-      @NonNull TextView statusTextView, @NonNull TextView titleTextView) {
+      @NonNull ScrollView logScrollView, @NonNull TextView logTextView,
+      @NonNull LinearLayout statusLayout, @NonNull TextView statusTextView,
+      @NonNull TextView titleTextView) {
     this.rootView = rootView;
     this.balanceTextView = balanceTextView;
     this.cardTypeTextView = cardTypeTextView;
@@ -74,7 +74,7 @@ public final class ActivityMainBinding implements ViewBinding {
     this.instructionTextView = instructionTextView;
     this.logScrollView = logScrollView;
     this.logTextView = logTextView;
-    this.nfcIcon = nfcIcon;
+    this.statusLayout = statusLayout;
     this.statusTextView = statusTextView;
     this.titleTextView = titleTextView;
   }
@@ -160,9 +160,9 @@ public final class ActivityMainBinding implements ViewBinding {
         break missingId;
       }
 
-      id = R.id.nfcIcon;
-      ImageView nfcIcon = ViewBindings.findChildViewById(rootView, id);
-      if (nfcIcon == null) {
+      id = R.id.statusLayout;
+      LinearLayout statusLayout = ViewBindings.findChildViewById(rootView, id);
+      if (statusLayout == null) {
         break missingId;
       }
 
@@ -180,7 +180,7 @@ public final class ActivityMainBinding implements ViewBinding {
 
       return new ActivityMainBinding((ConstraintLayout) rootView, balanceTextView, cardTypeTextView,
           debugSection, historyLayout, historyScrollView, historyTitleTextView, instructionTextView,
-          logScrollView, logTextView, nfcIcon, statusTextView, titleTextView);
+          logScrollView, logTextView, statusLayout, statusTextView, titleTextView);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

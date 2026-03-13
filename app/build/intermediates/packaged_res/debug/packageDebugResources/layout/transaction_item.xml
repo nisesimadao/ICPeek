@@ -57,7 +57,9 @@
             android:text="物販: 物販端末"
             android:textSize="12sp"
             android:textColor="#666666"
-            android:layout_marginTop="4dp" />
+            android:layout_marginTop="4dp"
+            android:maxLines="1"
+            android:ellipsize="end" />
 
         <TextView
             android:id="@+id/transactionDetailsTextView"
@@ -66,7 +68,9 @@
             android:text="残高: ¥831 | 連番: 2293760"
             android:textSize="10sp"
             android:textColor="#999999"
-            android:layout_marginTop="2dp" />
+            android:layout_marginTop="2dp"
+            android:maxLines="1"
+            android:ellipsize="end" />
 
     </LinearLayout>
 
