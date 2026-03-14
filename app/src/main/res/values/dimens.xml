@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Apple HIG inspired spacing system -->
+    <!-- Base spacing unit: 8dp -->
+    
+    <!-- Margins and Padding -->
+    <dimen name="spacing_xs">4dp</dimen>
+    <dimen name="spacing_sm">8dp</dimen>
+    <dimen name="spacing_md">16dp</dimen>
+    <dimen name="spacing_lg">24dp</dimen>
+    <dimen name="spacing_xl">32dp</dimen>
+    <dimen name="spacing_xxl">48dp</dimen>
+    
+    <!-- Screen padding -->
+    <dimen name="screen_padding_horizontal">20dp</dimen>
+    <dimen name="screen_padding_vertical">16dp</dimen>
+    
+    <!-- Component spacing -->
+    <dimen name="component_spacing_sm">8dp</dimen>
+    <dimen name="component_spacing_md">16dp</dimen>
+    <dimen name="component_spacing_lg">24dp</dimen>
+    
+    <!-- Card and List spacing -->
+    <dimen name="card_spacing">8dp</dimen>
+    <dimen name="list_item_spacing">0dp</dimen>
+    <dimen name="list_section_spacing">24dp</dimen>
+    
+    <!-- Corner radius -->
+    <dimen name="corner_radius_sm">8dp</dimen>
+    <dimen name="corner_radius_md">12dp</dimen>
+    <dimen name="corner_radius_lg">16dp</dimen>
+    
+    <!-- Button dimensions -->
+    <dimen name="button_height_sm">32dp</dimen>
+    <dimen name="button_height_md">44dp</dimen>
+    <dimen name="button_height_lg">50dp</dimen>
+    
+    <!-- Icon sizes -->
+    <dimen name="icon_size_xs">16dp</dimen>
+    <dimen name="icon_size_sm">20dp</dimen>
+    <dimen name="icon_size_md">24dp</dimen>
+    <dimen name="icon_size_lg">32dp</dimen>
+    <dimen name="icon_size_xl">48dp</dimen>
+    
+    <!-- Typography -->
+    <dimen name="text_size_large_title">34sp</dimen>
+    <dimen name="text_size_title_1">28sp</dimen>
+    <dimen name="text_size_title_2">22sp</dimen>
+    <dimen name="text_size_title_3">20sp</dimen>
+    <dimen name="text_size_headline">17sp</dimen>
+    <dimen name="text_size_body">17sp</dimen>
+    <dimen name="text_size_callout">16sp</dimen>
+    <dimen name="text_size_subhead">15sp</dimen>
+    <dimen name="text_size_footnote">13sp</dimen>
+    <dimen name="text_size_caption_1">12sp</dimen>
+    <dimen name="text_size_caption_2">11sp</dimen>
+    
+    <!-- Line heights -->
+    <dimen name="line_height_large_title">41sp</dimen>
+    <dimen name="line_height_title_1">34sp</dimen>
+    <dimen name="line_height_title_2">28sp</dimen>
+    <dimen name="line_height_title_3">25sp</dimen>
+    <dimen name="line_height_headline">22sp</dimen>
+    <dimen name="line_height_body">22sp</dimen>
+    <dimen name="line_height_callout">21sp</dimen>
+    <dimen name="line_height_subhead">20sp</dimen>
+    <dimen name="line_height_footnote">18sp</dimen>
+    <dimen name="line_height_caption_1">16sp</dimen>
+    <dimen name="line_height_caption_2">15sp</dimen>
+    
+    <!-- Elevation -->
+    <dimen name="elevation_sm">2dp</dimen>
+    <dimen name="elevation_md">4dp</dimen>
+    <dimen name="elevation_lg">8dp</dimen>
+    
+    <!-- Stroke width -->
+    <dimen name="stroke_width_thin">0.5dp</dimen>
+    <dimen name="stroke_width_regular">1dp</dimen>
+    <dimen name="stroke_width_thick">2dp</dimen>
+</resources>

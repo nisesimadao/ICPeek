@@ -115,6 +115,7 @@ Desktop.ini
 *.temp
 *.swp
 *.swo
+*.lock
 *~
 
 # Package files

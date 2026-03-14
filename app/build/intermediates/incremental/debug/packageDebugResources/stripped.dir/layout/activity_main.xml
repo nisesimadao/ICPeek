@@ -1,161 +1,202 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp"
+    android:background="@color/system_background"
     tools:context=".MainActivity">
 
-    <TextView
-        android:id="@+id/titleTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="ICPeek"
-        android:textSize="28sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="16dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <TextView
-        android:id="@+id/instructionTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hold your IC card near the device"
-        android:textSize="14sp"
-        android:textColor="#666666"
-        android:gravity="center"
-        android:layout_marginBottom="16dp"
-        app:layout_constraintTop_toBottomOf="@id/titleTextView"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <TextView
-        android:id="@+id/balanceTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Balance: --"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:textColor="#2196F3"
-        android:layout_marginBottom="8dp"
-        app:layout_constraintTop_toBottomOf="@id/instructionTextView"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <LinearLayout
-        android:id="@+id/statusLayout"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginBottom="16dp"
-        app:layout_constraintTop_toBottomOf="@id/balanceTextView"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-
-        <TextView
-            android:id="@+id/cardTypeTextView"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="ICOCA"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:textColor="#4A90E2"
-            android:gravity="start|center_vertical" />
-
-        <TextView
-            android:id="@+id/statusTextView"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Ready to read IC card"
-            android:textSize="12sp"
-            android:textColor="#666666"
-            android:gravity="end|center_vertical" />
-
-    </LinearLayout>
-
-    <TextView
-        android:id="@+id/historyTitleTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Transaction History"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:textColor="#333333"
-        android:layout_marginBottom="8dp"
-        app:layout_constraintTop_toBottomOf="@id/statusLayout"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <ScrollView
-        android:id="@+id/historyScrollView"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp"
-        android:background="#FFFFFF"
-        android:padding="8dp"
-        android:elevation="2dp"
-        app:layout_constraintTop_toBottomOf="@id/historyTitleTextView"
-        app:layout_constraintBottom_toTopOf="@id/logScrollView"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+    <!-- Main Content -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
 
         <LinearLayout
-            android:id="@+id/historyLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical" />
+            android:orientation="vertical"
+            android:paddingHorizontal="@dimen/screen_padding_horizontal"
+            android:paddingVertical="@dimen/screen_padding_vertical">
 
-    </ScrollView>
+            <!-- Header Section -->
+            <com.google.android.material.appbar.AppBarLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/system_background"
+                app:elevation="0dp">
 
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="@dimen/spacing_lg">
+
+                    <TextView
+                        android:id="@+id/titleTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="ICPeek"
+                        android:textAppearance="@style/TextAppearance.ICPeek.LargeTitle"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <TextView
+                        android:id="@+id/instructionTextView"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="ICカードを端末に近づけてください"
+                        android:textAppearance="@style/TextAppearance.ICPeek.Callout"
+                        android:textColor="@color/secondary_label"
+                        android:layout_marginTop="@dimen/spacing_sm"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/titleTextView" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+            </com.google.android.material.appbar.AppBarLayout>
+
+            <!-- Balance Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/balanceCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_lg"
+                app:cardCornerRadius="@dimen/corner_radius_lg"
+                app:cardElevation="@dimen/elevation_sm"
+                app:cardBackgroundColor="@color/system_background"
+                app:strokeWidth="@dimen/stroke_width_thin"
+                app:strokeColor="@color/separator">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/spacing_lg">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="残高"
+                        android:textAppearance="@style/TextAppearance.ICPeek.Footnote"
+                        android:textColor="@color/secondary_label"
+                        android:layout_marginBottom="@dimen/spacing_sm" />
+
+                    <TextView
+                        android:id="@+id/balanceTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="--"
+                        android:textAppearance="@style/TextAppearance.ICPeek.Balance.Large"
+                        android:layout_marginBottom="@dimen/spacing_md" />
+
+                    <LinearLayout
+                        android:id="@+id/statusLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:id="@+id/cardTypeTextView"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="ICOCA"
+                            android:textAppearance="@style/TextAppearance.ICPeek.Callout"
+                            android:textColor="@color/icoca_blue"
+                            android:background="@drawable/card_type_badge_background"
+                            android:paddingHorizontal="@dimen/spacing_sm"
+                            android:paddingVertical="@dimen/spacing_xs"
+                            android:textColorHint="@color/white" />
+
+                        <TextView
+                            android:id="@+id/statusTextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="読み取り準備完了"
+                            android:textAppearance="@style/TextAppearance.ICPeek.Caption1"
+                            android:textColor="@color/tertiary_label"
+                            android:layout_marginStart="@dimen/spacing_sm" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Transaction History Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="@dimen/spacing_xl">
+
+                <TextView
+                    android:id="@+id/historyTitleTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="取引履歴"
+                    android:textAppearance="@style/TextAppearance.ICPeek.Title3"
+                    android:layout_marginBottom="@dimen/spacing_md" />
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardCornerRadius="@dimen/corner_radius_lg"
+                    app:cardElevation="@dimen/elevation_sm"
+                    app:cardBackgroundColor="@color/secondary_system_background">
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/historyRecyclerView"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="@dimen/spacing_sm"
+                        android:nestedScrollingEnabled="false" />
+
+                </com.google.android.material.card.MaterialCardView>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Debug Section (Hidden in production) -->
     <LinearLayout
         android:id="@+id/debugSection"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_marginBottom="4dp"
+        android:background="@color/system_background"
+        android:padding="@dimen/spacing_md"
         android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@id/logScrollView"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        android:layout_gravity="bottom">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Debug Logs"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:textColor="#333333"
-            android:layout_marginBottom="4dp" />
+            android:textAppearance="@style/TextAppearance.ICPeek.Caption1"
+            android:layout_marginBottom="@dimen/spacing_sm" />
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:background="@color/system_grouped_background">
+
+            <TextView
+                android:id="@+id/logTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Debug logs will appear here..."
+                android:textAppearance="@style/TextAppearance.ICPeek.Caption2"
+                android:fontFamily="monospace"
+                android:padding="@dimen/spacing_sm" />
+
+        </ScrollView>
 
     </LinearLayout>
 
-    <ScrollView
-        android:id="@+id/logScrollView"
-        android:layout_width="0dp"
-        android:layout_height="100dp"
-        android:layout_marginTop="8dp"
-        android:background="#F5F5F5"
-        android:padding="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-
-        <TextView
-            android:id="@+id/logTextView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Debug logs will appear here..."
-            android:textSize="10sp"
-            android:textColor="#333333"
-            android:fontFamily="monospace"
-            android:padding="4dp" />
-
-    </ScrollView>
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

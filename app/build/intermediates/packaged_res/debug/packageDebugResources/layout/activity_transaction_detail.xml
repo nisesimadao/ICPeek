@@ -1,129 +1,250 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="24dp">
+    android:background="@color/system_background"
+    tools:context=".TransactionDetailActivity">
 
-    <LinearLayout
+    <!-- Top App Bar -->
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginBottom="16dp">
+        android:background="@color/system_background"
+        app:elevation="0dp"
+        android:fitsSystemWindows="true">
 
-        <Button
-            android:id="@+id/backButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="← 戻る"
-            android:textSize="16sp"
-            android:background="?android:attr/selectableItemBackground"
-            android:padding="12dp" />
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:paddingHorizontal="@dimen/screen_padding_horizontal">
 
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="取引詳細"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:textColor="#333333"
-            android:gravity="center" />
+            <ImageButton
+                android:id="@+id/backButton"
+                android:layout_width="@dimen/button_height_md"
+                android:layout_height="@dimen/button_height_md"
+                android:src="@drawable/ic_arrow_back"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="戻る"
+                app:tint="@color/system_blue"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent" />
 
-    </LinearLayout>
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="取引詳細"
+                android:textAppearance="@style/TextAppearance.ICPeek.Title2"
+                android:gravity="center"
+                android:layout_marginStart="@dimen/spacing_md"
+                android:layout_marginEnd="@dimen/button_height_md"
+                app:layout_constraintStart_toEndOf="@id/backButton"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent" />
 
-    <ScrollView
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- Main Content -->
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:background="#F5F5F5"
-        android:padding="16dp">
+        android:layout_height="match_parent"
+        android:layout_marginTop="?attr/actionBarSize"
+        android:fillViewport="true">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:paddingHorizontal="@dimen/screen_padding_horizontal"
+            android:paddingVertical="@dimen/screen_padding_vertical">
 
-            <TextView
-                android:id="@+id/transactionDateTextView"
+            <!-- Transaction Summary Card -->
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="2025/11/29"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="#333333"
-                android:layout_marginBottom="8dp" />
+                android:layout_marginTop="@dimen/spacing_md"
+                app:cardCornerRadius="@dimen/corner_radius_lg"
+                app:cardElevation="@dimen/elevation_sm"
+                app:cardBackgroundColor="@color/system_background"
+                app:strokeWidth="@dimen/stroke_width_thin"
+                app:strokeColor="@color/separator">
 
-            <TextView
-                android:id="@+id/transactionTypeTextView"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/spacing_lg">
+
+                    <TextView
+                        android:id="@+id/transactionDateTextView"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="2025/11/29"
+                        android:textAppearance="@style/TextAppearance.ICPeek.Title3"
+                        android:layout_marginBottom="@dimen/spacing_sm" />
+
+                    <TextView
+                        android:id="@+id/transactionTypeTextView"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="物販: 物販端末"
+                        android:textAppearance="@style/TextAppearance.ICPeek.Body"
+                        android:textColor="@color/secondary_label"
+                        android:layout_marginBottom="@dimen/spacing_md" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="@dimen/spacing_sm">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="残高"
+                            android:textAppearance="@style/TextAppearance.ICPeek.Callout"
+                            android:textColor="@color/secondary_label" />
+
+                        <TextView
+                            android:id="@+id/transactionBalanceTextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="¥831"
+                            android:textAppearance="@style/TextAppearance.ICPeek.Balance.Medium" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="増減"
+                            android:textAppearance="@style/TextAppearance.ICPeek.Callout"
+                            android:textColor="@color/secondary_label" />
+
+                        <TextView
+                            android:id="@+id/transactionAmountChangeTextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="+¥100"
+                            android:textAppearance="@style/TextAppearance.ICPeek.Balance.Medium"
+                            android:textColor="@color/system_green" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Detailed Information Section -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="物販: 物販端末"
-                android:textSize="16sp"
-                android:textColor="#666666"
-                android:layout_marginBottom="8dp" />
+                android:orientation="vertical"
+                android:layout_marginTop="@dimen/spacing_xl">
 
-            <TextView
-                android:id="@+id/transactionBalanceTextView"
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="詳細情報"
+                    android:textAppearance="@style/TextAppearance.ICPeek.Title3"
+                    android:layout_marginBottom="@dimen/spacing_md" />
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardCornerRadius="@dimen/corner_radius_lg"
+                    app:cardElevation="@dimen/elevation_sm"
+                    app:cardBackgroundColor="@color/secondary_system_background">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="@dimen/spacing_lg">
+
+                        <TextView
+                            android:id="@+id/transactionDetailsTextView"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="連番: 2293760\nリージョン: 0\n入線区: 111\n入駅: 44\n出線区: 177\n出駅: 101"
+                            android:textAppearance="@style/TextAppearance.ICPeek.Body"
+                            android:lineSpacingMultiplier="1.4" />
+
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+
+            </LinearLayout>
+
+            <!-- Raw Data Section -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="残高: ¥831"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                android:textColor="#2196F3"
-                android:layout_marginBottom="8dp" />
+                android:orientation="vertical"
+                android:layout_marginTop="@dimen/spacing_xl">
 
-            <TextView
-                android:id="@+id/transactionAmountChangeTextView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="+¥100"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="#4CAF50"
-                android:layout_marginBottom="16dp" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Rawデータ"
+                    android:textAppearance="@style/TextAppearance.ICPeek.Title3"
+                    android:layout_marginBottom="@dimen/spacing_md" />
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="詳細情報"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="#333333"
-                android:layout_marginBottom="8dp" />
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardCornerRadius="@dimen/corner_radius_lg"
+                    app:cardElevation="@dimen/elevation_sm"
+                    app:cardBackgroundColor="@color/secondary_system_background">
 
-            <TextView
-                android:id="@+id/transactionDetailsTextView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="連番: 2293760\nリージョン: 0\n入線区: 111\n入駅: 44\n出線区: 177\n出駅: 101"
-                android:textSize="14sp"
-                android:textColor="#666666"
-                android:layout_marginBottom="16dp" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="@dimen/spacing_lg">
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Rawデータ"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="#333333"
-                android:layout_marginBottom="8dp" />
+                        <TextView
+                            android:id="@+id/rawDataTextView"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="C7460000337D6F2CB1653F0300002300"
+                            android:textAppearance="@style/TextAppearance.ICPeek.Caption1"
+                            android:fontFamily="monospace"
+                            android:textIsSelectable="true"
+                            android:background="@color/system_background"
+                            android:padding="@dimen/spacing_md"
+                            android:breakStrategy="simple" />
 
-            <TextView
-                android:id="@+id/rawDataTextView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="C7460000337D6F2CB1653F0300002300"
-                android:textSize="12sp"
-                android:textColor="#333333"
-                android:fontFamily="monospace"
-                android:background="#FFFFFF"
-                android:padding="12dp"
-                android:textIsSelectable="true" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="タップしてコピー"
+                            android:textAppearance="@style/TextAppearance.ICPeek.Caption2"
+                            android:textColor="@color/tertiary_label"
+                            android:layout_marginTop="@dimen/spacing_sm"
+                            android:gravity="center" />
+
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+
+            </LinearLayout>
 
         </LinearLayout>
 
-    </ScrollView>
+    </androidx.core.widget.NestedScrollView>
 
-</LinearLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -7,7 +7,8 @@ import android.os.Bundle
 import android.os.Build
 import android.view.LayoutInflater
 import android.view.View
-import android.widget.LinearLayout
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.icpeek.app.model.TransactionInfo
@@ -22,7 +23,7 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, NFCReader.T
     private lateinit var statusTextView: TextView
     private lateinit var cardTypeTextView: TextView
     private lateinit var logTextView: TextView
-    private lateinit var historyLayout: LinearLayout
+    private lateinit var historyRecyclerView: RecyclerView
     private var nfcReader: NFCReader? = null
     private var transactionParser: TransactionParser? = null
     
@@ -46,7 +47,10 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, NFCReader.T
         statusTextView = findViewById(R.id.statusTextView)
         cardTypeTextView = findViewById(R.id.cardTypeTextView)
         logTextView = findViewById(R.id.logTextView)
-        historyLayout = findViewById(R.id.historyLayout)
+        historyRecyclerView = findViewById(R.id.historyRecyclerView)
+        
+        // Setup RecyclerView
+        historyRecyclerView.layoutManager = LinearLayoutManager(this)
         
         nfcAdapter = NfcAdapter.getDefaultAdapter(this)
         
@@ -147,9 +151,7 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, NFCReader.T
         addLog("Tag technologies: ${tag.techList.joinToString(", ")}")
         
         runOnUiThread {
-            statusTextView.text = "Processing IC card..."
-            // Clear previous history
-            historyLayout.removeAllViews()
+            statusTextView.text = "ICカードを処理中..."
         }
         
         try {
@@ -285,47 +287,92 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, NFCReader.T
     }
     
     private fun displayTransactions(transactions: List<TransactionInfo>) {
-        historyLayout.removeAllViews()
+        val transactionViews = mutableListOf<View>()
         
         if (transactions.isEmpty()) {
             val noHistoryView = TextView(this)
-            noHistoryView.text = "No transaction history found"
+            noHistoryView.text = "取引履歴が見つかりません"
             noHistoryView.textSize = 14f
             noHistoryView.setTextColor(0xFF666666.toInt())
             noHistoryView.setPadding(16, 16, 16, 16)
-            historyLayout.addView(noHistoryView)
-            return
+            transactionViews.add(noHistoryView)
+        } else {
+            val inflater = LayoutInflater.from(this)
+            
+            for (transaction in transactions) {
+                val transactionView = inflater.inflate(R.layout.transaction_item, null, false)
+                
+                // Set transaction data
+                transactionView.findViewById<TextView>(R.id.transactionDateTextView).text = transaction.getFormattedDate()
+                transactionView.findViewById<TextView>(R.id.transactionBalanceTextView).text = transaction.getFormattedBalance()
+                transactionView.findViewById<TextView>(R.id.transactionTypeTextView).text = transaction.getDisplayInfo()
+                transactionView.findViewById<TextView>(R.id.transactionDetailsTextView).text = 
+                    "残高: ${transaction.getFormattedBalance()} | 連番: ${transaction.sequence}"
+                
+                // Set amount change with color
+                val amountChangeTextView = transactionView.findViewById<TextView>(R.id.transactionAmountChangeTextView)
+                val amountChange = transaction.getFormattedAmountChange()
+                if (amountChange.isNotEmpty()) {
+                    amountChangeTextView.text = amountChange
+                    amountChangeTextView.setTextColor(transaction.getAmountChangeColor())
+                    amountChangeTextView.visibility = View.VISIBLE
+                } else {
+                    amountChangeTextView.visibility = View.GONE
+                }
+                
+                // Set click listener for transaction detail
+                transactionView.setOnClickListener {
+                    openTransactionDetail(transaction)
+                }
+                
+                transactionViews.add(transactionView)
+            }
         }
         
-        val inflater = LayoutInflater.from(this)
-        
-        for (transaction in transactions) {
-            val transactionView = inflater.inflate(R.layout.transaction_item, historyLayout, false)
-            
-            // Set transaction data
-            transactionView.findViewById<TextView>(R.id.transactionDateTextView).text = transaction.getFormattedDate()
-            transactionView.findViewById<TextView>(R.id.transactionBalanceTextView).text = transaction.getFormattedBalance()
-            transactionView.findViewById<TextView>(R.id.transactionTypeTextView).text = transaction.getDisplayInfo()
-            transactionView.findViewById<TextView>(R.id.transactionDetailsTextView).text = 
-                "残高: ${transaction.getFormattedBalance()} | 連番: ${transaction.sequence}"
-            
-            // Set amount change with color
-            val amountChangeTextView = transactionView.findViewById<TextView>(R.id.transactionAmountChangeTextView)
-            val amountChange = transaction.getFormattedAmountChange()
-            if (amountChange.isNotEmpty()) {
-                amountChangeTextView.text = amountChange
-                amountChangeTextView.setTextColor(transaction.getAmountChangeColor())
-                amountChangeTextView.visibility = View.VISIBLE
-            } else {
-                amountChangeTextView.visibility = View.GONE
+        // Create a simple adapter for the RecyclerView
+        historyRecyclerView.adapter = object : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+            override fun onCreateViewHolder(parent: android.view.ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+                val inflater = LayoutInflater.from(this@MainActivity)
+                val view = inflater.inflate(R.layout.transaction_item, parent, false)
+                return object : RecyclerView.ViewHolder(view) {}
             }
             
-            // Set click listener for transaction detail
-            transactionView.setOnClickListener {
-                openTransactionDetail(transaction)
+            override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+                // Update the view with transaction data
+                val transaction = transactions.getOrNull(position)
+                if (transaction != null) {
+                    holder.itemView.findViewById<TextView>(R.id.transactionDateTextView).text = transaction.getFormattedDate()
+                    holder.itemView.findViewById<TextView>(R.id.transactionBalanceTextView).text = transaction.getFormattedBalance()
+                    holder.itemView.findViewById<TextView>(R.id.transactionTypeTextView).text = transaction.getDisplayInfo()
+                    holder.itemView.findViewById<TextView>(R.id.transactionDetailsTextView).text = 
+                        "残高: ${transaction.getFormattedBalance()} | 連番: ${transaction.sequence}"
+                    
+                    val amountChangeTextView = holder.itemView.findViewById<TextView>(R.id.transactionAmountChangeTextView)
+                    val amountChange = transaction.getFormattedAmountChange()
+                    if (amountChange.isNotEmpty()) {
+                        amountChangeTextView.text = amountChange
+                        amountChangeTextView.setTextColor(transaction.getAmountChangeColor())
+                        amountChangeTextView.visibility = View.VISIBLE
+                    } else {
+                        amountChangeTextView.visibility = View.GONE
+                    }
+                    
+                    holder.itemView.setOnClickListener {
+                        openTransactionDetail(transaction)
+                    }
+                } else if (transactions.isEmpty()) {
+                    // Show "no history" message
+                    holder.itemView.findViewById<TextView>(R.id.transactionDateTextView).text = "取引履歴が見つかりません"
+                    holder.itemView.findViewById<TextView>(R.id.transactionBalanceTextView).text = ""
+                    holder.itemView.findViewById<TextView>(R.id.transactionTypeTextView).text = ""
+                    holder.itemView.findViewById<TextView>(R.id.transactionDetailsTextView).text = ""
+                    holder.itemView.findViewById<TextView>(R.id.transactionAmountChangeTextView).visibility = View.GONE
+                }
             }
             
-            historyLayout.addView(transactionView)
+            override fun getItemCount(): Int {
+                return if (transactions.isEmpty()) 1 else transactions.size
+            }
         }
         
         addLog("Displayed ${transactions.size} transactions in UI")
@@ -359,20 +406,14 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, NFCReader.T
             }
             
             // Keep only last 50 log lines to avoid memory issues
-            val lines = newLogs.split("\n")
-            val limitedLogs = if (lines.size > 50) {
-                lines.takeLast(50).joinToString("\n")
+            val logLines = newLogs.split("\n")
+            val limitedLogs = if (logLines.size > 50) {
+                logLines.takeLast(50).joinToString("\n")
             } else {
                 newLogs
             }
             
             logTextView.text = limitedLogs
-            
-            // Auto-scroll to bottom
-            val scrollView = findViewById<android.widget.ScrollView>(R.id.logScrollView)
-            scrollView.post {
-                scrollView.fullScroll(android.widget.ScrollView.FOCUS_DOWN)
-            }
         }
     }
     

@@ -7,9 +7,9 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.cardview.widget.CardView;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
+import com.google.android.material.card.MaterialCardView;
 import com.icpeek.app.R;
 import java.lang.NullPointerException;
 import java.lang.Override;
@@ -17,7 +17,7 @@ import java.lang.String;
 
 public final class TransactionItemBinding implements ViewBinding {
   @NonNull
-  private final CardView rootView;
+  private final MaterialCardView rootView;
 
   @NonNull
   public final TextView transactionAmountChangeTextView;
@@ -34,7 +34,7 @@ public final class TransactionItemBinding implements ViewBinding {
   @NonNull
   public final TextView transactionTypeTextView;
 
-  private TransactionItemBinding(@NonNull CardView rootView,
+  private TransactionItemBinding(@NonNull MaterialCardView rootView,
       @NonNull TextView transactionAmountChangeTextView,
       @NonNull TextView transactionBalanceTextView, @NonNull TextView transactionDateTextView,
       @NonNull TextView transactionDetailsTextView, @NonNull TextView transactionTypeTextView) {
@@ -48,7 +48,7 @@ public final class TransactionItemBinding implements ViewBinding {
 
   @Override
   @NonNull
-  public CardView getRoot() {
+  public MaterialCardView getRoot() {
     return rootView;
   }
 
@@ -103,9 +103,9 @@ public final class TransactionItemBinding implements ViewBinding {
         break missingId;
       }
 
-      return new TransactionItemBinding((CardView) rootView, transactionAmountChangeTextView,
-          transactionBalanceTextView, transactionDateTextView, transactionDetailsTextView,
-          transactionTypeTextView);
+      return new TransactionItemBinding((MaterialCardView) rootView,
+          transactionAmountChangeTextView, transactionBalanceTextView, transactionDateTextView,
+          transactionDetailsTextView, transactionTypeTextView);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

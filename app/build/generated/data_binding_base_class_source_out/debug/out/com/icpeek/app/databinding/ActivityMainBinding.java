@@ -5,13 +5,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
+import com.google.android.material.card.MaterialCardView;
 import com.icpeek.app.R;
 import java.lang.NullPointerException;
 import java.lang.Override;
@@ -19,7 +20,10 @@ import java.lang.String;
 
 public final class ActivityMainBinding implements ViewBinding {
   @NonNull
-  private final ConstraintLayout rootView;
+  private final CoordinatorLayout rootView;
+
+  @NonNull
+  public final MaterialCardView balanceCard;
 
   @NonNull
   public final TextView balanceTextView;
@@ -31,19 +35,13 @@ public final class ActivityMainBinding implements ViewBinding {
   public final LinearLayout debugSection;
 
   @NonNull
-  public final LinearLayout historyLayout;
-
-  @NonNull
-  public final ScrollView historyScrollView;
+  public final RecyclerView historyRecyclerView;
 
   @NonNull
   public final TextView historyTitleTextView;
 
   @NonNull
   public final TextView instructionTextView;
-
-  @NonNull
-  public final ScrollView logScrollView;
 
   @NonNull
   public final TextView logTextView;
@@ -57,22 +55,21 @@ public final class ActivityMainBinding implements ViewBinding {
   @NonNull
   public final TextView titleTextView;
 
-  private ActivityMainBinding(@NonNull ConstraintLayout rootView, @NonNull TextView balanceTextView,
+  private ActivityMainBinding(@NonNull CoordinatorLayout rootView,
+      @NonNull MaterialCardView balanceCard, @NonNull TextView balanceTextView,
       @NonNull TextView cardTypeTextView, @NonNull LinearLayout debugSection,
-      @NonNull LinearLayout historyLayout, @NonNull ScrollView historyScrollView,
-      @NonNull TextView historyTitleTextView, @NonNull TextView instructionTextView,
-      @NonNull ScrollView logScrollView, @NonNull TextView logTextView,
+      @NonNull RecyclerView historyRecyclerView, @NonNull TextView historyTitleTextView,
+      @NonNull TextView instructionTextView, @NonNull TextView logTextView,
       @NonNull LinearLayout statusLayout, @NonNull TextView statusTextView,
       @NonNull TextView titleTextView) {
     this.rootView = rootView;
+    this.balanceCard = balanceCard;
     this.balanceTextView = balanceTextView;
     this.cardTypeTextView = cardTypeTextView;
     this.debugSection = debugSection;
-    this.historyLayout = historyLayout;
-    this.historyScrollView = historyScrollView;
+    this.historyRecyclerView = historyRecyclerView;
     this.historyTitleTextView = historyTitleTextView;
     this.instructionTextView = instructionTextView;
-    this.logScrollView = logScrollView;
     this.logTextView = logTextView;
     this.statusLayout = statusLayout;
     this.statusTextView = statusTextView;
@@ -81,7 +78,7 @@ public final class ActivityMainBinding implements ViewBinding {
 
   @Override
   @NonNull
-  public ConstraintLayout getRoot() {
+  public CoordinatorLayout getRoot() {
     return rootView;
   }
 
@@ -106,6 +103,12 @@ public final class ActivityMainBinding implements ViewBinding {
     // This is done to optimize the compiled bytecode for size and performance.
     int id;
     missingId: {
+      id = R.id.balanceCard;
+      MaterialCardView balanceCard = ViewBindings.findChildViewById(rootView, id);
+      if (balanceCard == null) {
+        break missingId;
+      }
+
       id = R.id.balanceTextView;
       TextView balanceTextView = ViewBindings.findChildViewById(rootView, id);
       if (balanceTextView == null) {
@@ -124,15 +127,9 @@ public final class ActivityMainBinding implements ViewBinding {
         break missingId;
       }
 
-      id = R.id.historyLayout;
-      LinearLayout historyLayout = ViewBindings.findChildViewById(rootView, id);
-      if (historyLayout == null) {
-        break missingId;
-      }
-
-      id = R.id.historyScrollView;
-      ScrollView historyScrollView = ViewBindings.findChildViewById(rootView, id);
-      if (historyScrollView == null) {
+      id = R.id.historyRecyclerView;
+      RecyclerView historyRecyclerView = ViewBindings.findChildViewById(rootView, id);
+      if (historyRecyclerView == null) {
         break missingId;
       }
 
@@ -145,12 +142,6 @@ public final class ActivityMainBinding implements ViewBinding {
       id = R.id.instructionTextView;
       TextView instructionTextView = ViewBindings.findChildViewById(rootView, id);
       if (instructionTextView == null) {
-        break missingId;
-      }
-
-      id = R.id.logScrollView;
-      ScrollView logScrollView = ViewBindings.findChildViewById(rootView, id);
-      if (logScrollView == null) {
         break missingId;
       }
 
@@ -178,9 +169,9 @@ public final class ActivityMainBinding implements ViewBinding {
         break missingId;
       }
 
-      return new ActivityMainBinding((ConstraintLayout) rootView, balanceTextView, cardTypeTextView,
-          debugSection, historyLayout, historyScrollView, historyTitleTextView, instructionTextView,
-          logScrollView, logTextView, statusLayout, statusTextView, titleTextView);
+      return new ActivityMainBinding((CoordinatorLayout) rootView, balanceCard, balanceTextView,
+          cardTypeTextView, debugSection, historyRecyclerView, historyTitleTextView,
+          instructionTextView, logTextView, statusLayout, statusTextView, titleTextView);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

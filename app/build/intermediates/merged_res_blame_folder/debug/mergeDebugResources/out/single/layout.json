@@ -8,15 +8,7 @@
         "source": "com.icpeek.app-main-30:/layout/activity_main.xml"
     },
     {
-        "merged": "C:\\Users\\opevi\\.gradle\\daemon\\8.11.1\\com.icpeek.app-mergeDebugResources-27:\\layout\\transaction_item.xml",
-        "source": "C:\\Users\\opevi\\.gradle\\daemon\\8.11.1\\com.icpeek.app-main-30:\\layout\\transaction_item.xml"
-    },
-    {
-        "merged": "C:\\Users\\opevi\\.gradle\\daemon\\8.11.1\\com.icpeek.app-mergeDebugResources-27:\\layout\\activity_transaction_detail.xml",
-        "source": "C:\\Users\\opevi\\.gradle\\daemon\\8.11.1\\com.icpeek.app-main-30:\\layout\\activity_transaction_detail.xml"
-    },
-    {
-        "merged": "C:\\Users\\opevi\\.gradle\\daemon\\8.11.1\\com.icpeek.app-mergeDebugResources-27:\\layout\\activity_main.xml",
-        "source": "C:\\Users\\opevi\\.gradle\\daemon\\8.11.1\\com.icpeek.app-main-30:\\layout\\activity_main.xml"
+        "merged": "com.icpeek.app-mergeDebugResources-27:/layout/activity_transaction_detail.xml",
+        "source": "com.icpeek.app-main-30:/layout/activity_transaction_detail.xml"
     }
 ]

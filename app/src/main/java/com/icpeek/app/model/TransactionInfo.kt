@@ -43,9 +43,77 @@ data class TransactionInfo(
     
     fun getAmountChange(): Int {
         return if (previousBalance > 0) {
-            balance - previousBalance
+            val rawChange = balance - previousBalance
+            
+            // 取引タイプに基づいて増減額の符号を調整
+            when {
+                // 改札・運賃支払系（残高が減少するはず）
+                isFarePayment() -> -kotlin.math.abs(rawChange)
+                
+                // チャージ系（残高が増加するはず）
+                isCharge() -> kotlin.math.abs(rawChange)
+                
+                // 物販系（残高が減少するはず）
+                isShopping() -> -kotlin.math.abs(rawChange)
+                
+                // その他はそのまま
+                else -> rawChange
+            }
         } else {
             0
+        }
+    }
+    
+    private fun isFarePayment(): Boolean {
+        return processId in listOf(
+            1,   // 運賃支払(改札出場)
+            4,   // 精算
+            5,   // 精算 (入場精算)
+            6,   // 窓出 (改札窓口処理)
+            19,  // 支払 (新幹線利用)
+            132, // 精算 (他社精算)
+            133  // 精算 (他社入場精算)
+        )
+    }
+    
+    private fun isCharge(): Boolean {
+        return when (processId) {
+            2 -> true   // チャージ
+            20 -> true  // 入A (入場時オートチャージ)
+            21 -> true  // 出A (出場時オートチャージ)
+            31 -> true  // 入金 (バスチャージ)
+            72 -> true  // 特典 (特典チャージ)
+            73 -> when (terminalId) {
+                9, 18, 31 -> true   // 入金機での入金
+                else -> false
+            }
+            70 -> when (terminalId) {
+                9, 18, 31 -> true   // 入金機での処理（チャージ）
+                else -> false       // その他は物販
+            }
+            198, 203 -> {
+                // 現金併用物販の場合、残高が増加していればチャージと判定
+                val rawChange = balance - previousBalance
+                rawChange > 0
+            }
+            else -> false
+        }
+    }
+    
+    private fun isShopping(): Boolean {
+        return when (processId) {
+            70 -> when (terminalId) {
+                199, 200 -> true  // 物販端末、自販機
+                else -> false
+            }
+            74 -> true   // 物販取消
+            75 -> true   // 入物 (入場物販)
+            198, 203 -> {
+                // 現金併用物販の場合、残高が減少していれば物販と判定
+                val rawChange = balance - previousBalance
+                rawChange < 0
+            }
+            else -> false
         }
     }
     

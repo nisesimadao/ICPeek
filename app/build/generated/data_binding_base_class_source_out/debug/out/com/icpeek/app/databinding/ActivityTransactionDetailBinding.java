@@ -4,11 +4,11 @@ package com.icpeek.app.databinding;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.LinearLayout;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.icpeek.app.R;
@@ -18,10 +18,10 @@ import java.lang.String;
 
 public final class ActivityTransactionDetailBinding implements ViewBinding {
   @NonNull
-  private final LinearLayout rootView;
+  private final CoordinatorLayout rootView;
 
   @NonNull
-  public final Button backButton;
+  public final ImageButton backButton;
 
   @NonNull
   public final TextView rawDataTextView;
@@ -41,8 +41,8 @@ public final class ActivityTransactionDetailBinding implements ViewBinding {
   @NonNull
   public final TextView transactionTypeTextView;
 
-  private ActivityTransactionDetailBinding(@NonNull LinearLayout rootView,
-      @NonNull Button backButton, @NonNull TextView rawDataTextView,
+  private ActivityTransactionDetailBinding(@NonNull CoordinatorLayout rootView,
+      @NonNull ImageButton backButton, @NonNull TextView rawDataTextView,
       @NonNull TextView transactionAmountChangeTextView,
       @NonNull TextView transactionBalanceTextView, @NonNull TextView transactionDateTextView,
       @NonNull TextView transactionDetailsTextView, @NonNull TextView transactionTypeTextView) {
@@ -58,7 +58,7 @@ public final class ActivityTransactionDetailBinding implements ViewBinding {
 
   @Override
   @NonNull
-  public LinearLayout getRoot() {
+  public CoordinatorLayout getRoot() {
     return rootView;
   }
 
@@ -84,7 +84,7 @@ public final class ActivityTransactionDetailBinding implements ViewBinding {
     int id;
     missingId: {
       id = R.id.backButton;
-      Button backButton = ViewBindings.findChildViewById(rootView, id);
+      ImageButton backButton = ViewBindings.findChildViewById(rootView, id);
       if (backButton == null) {
         break missingId;
       }
@@ -125,7 +125,7 @@ public final class ActivityTransactionDetailBinding implements ViewBinding {
         break missingId;
       }
 
-      return new ActivityTransactionDetailBinding((LinearLayout) rootView, backButton,
+      return new ActivityTransactionDetailBinding((CoordinatorLayout) rootView, backButton,
           rawDataTextView, transactionAmountChangeTextView, transactionBalanceTextView,
           transactionDateTextView, transactionDetailsTextView, transactionTypeTextView);
     }
