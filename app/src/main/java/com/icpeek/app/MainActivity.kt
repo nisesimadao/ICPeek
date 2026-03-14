@@ -272,9 +272,8 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, NFCReader.T
         addLog("Tag technologies: ${tag.techList.joinToString(", ")}")
         
         runOnUiThread {
-            statusTextView.text = "ICカードを処理中..."
-            // 読み取り中のフィードバックを追加
-            instructionTextView.text = languageManager.getString("instruction_reading")
+            statusTextView.text = getString(R.string.status_reading)
+            instructionTextView.text = getString(R.string.instruction_reading)
             progressBar.visibility = View.VISIBLE
         }
         
@@ -291,40 +290,36 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, NFCReader.T
                 // NFC読み取り処理
                 nfcReader?.readCard(nfcF)
                 
+                // 読み取り完了後の処理
+                runOnUiThread {
+                    instructionTextView.text = languageManager.getString("instruction_ready")
+                    progressBar.visibility = View.GONE
+                }
+                
             } else {
                 addLog("FeliCa technology not found")
                 runOnUiThread {
-                    statusTextView.text = "FeliCaカードではありません"
+                    statusTextView.text = languageManager.getString("status_not_felica")
                     instructionTextView.text = languageManager.getString("instruction_ready")
-                        addLog("ERROR: Failed to read balance")
-                    }
-                }
-                
-                // Close connection after all operations are done
-                nfcF.close()
-                addLog("FeliCa disconnected")
-                
-                // 読み取り完了後にUIをリセット
-                runOnUiThread {
-                    instructionTextView.text = "ICカードを端末に近づけてください"
                     progressBar.visibility = View.GONE
                 }
-            } else {
-                runOnUiThread {
-                    statusTextView.text = languageManager.getString("status_not_felica")
-                }
-                addLog("ERROR: Not a FeliCa card")
             }
         } catch (e: Exception) {
+            addLog("Error processing NFC tag: ${e.message}")
             runOnUiThread {
-                statusTextView.text = "Error: ${e.message}"
-                balanceTextView.text = "Balance: --"
+                statusTextView.text = getString(R.string.error_card_reading)
+                instructionTextView.text = getString(R.string.instruction_ready)
+                progressBar.visibility = View.GONE
             }
-            addLog("ERROR: ${e.javaClass.simpleName}: ${e.message}")
-            e.printStackTrace()
+        } finally {
+            // 確実に接続をクローズ
+            try {
+                nfcF?.close()
+                addLog("NFC connection closed")
+            } catch (e: Exception) {
+                addLog("Error closing NFC connection: ${e.message}")
+            }
         }
-        
-        addLog("=== End NFC Processing ===")
     }
     
     private fun readTransactionHistory(nfcF: NfcF) {
@@ -411,49 +406,8 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, NFCReader.T
             filteredTransactions = transactions
         }
         
-        historyRecyclerView.adapter = object : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
-            override fun onCreateViewHolder(parent: android.view.ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-                val inflater = LayoutInflater.from(this@MainActivity)
-                val view = inflater.inflate(R.layout.transaction_item, parent, false)
-                return object : RecyclerView.ViewHolder(view) {}
-            }
-            
-            override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-                val transaction = filteredTransactions.getOrNull(position)
-                if (transaction != null) {
-                    holder.itemView.findViewById<TextView>(R.id.transactionDateTextView).text = transaction.getFormattedDate()
-                    holder.itemView.findViewById<TextView>(R.id.transactionBalanceTextView).text = transaction.getFormattedBalance()
-                    holder.itemView.findViewById<TextView>(R.id.transactionTypeTextView).text = transaction.getDisplayInfo()
-                    holder.itemView.findViewById<TextView>(R.id.transactionDetailsTextView).text = 
-                        "連番: ${transaction.sequence}"
-                    
-                    val amountChangeTextView = holder.itemView.findViewById<TextView>(R.id.transactionAmountChangeTextView)
-                    val amountChange = transaction.getFormattedAmountChange()
-                    if (amountChange.isNotEmpty()) {
-                        amountChangeTextView.text = amountChange
-                        amountChangeTextView.setTextColor(transaction.getAmountChangeColor())
-                        amountChangeTextView.visibility = View.VISIBLE
-                    } else {
-                        amountChangeTextView.visibility = View.GONE
-                    }
-                    
-                    holder.itemView.setOnClickListener {
-                        openTransactionDetail(transaction)
-                    }
-                } else if (filteredTransactions.isEmpty()) {
-                    // 検索結果なしメッセージ
-                    holder.itemView.findViewById<TextView>(R.id.transactionDateTextView).text = languageManager.getString("no_search_results")
-                    holder.itemView.findViewById<TextView>(R.id.transactionBalanceTextView).text = ""
-                    holder.itemView.findViewById<TextView>(R.id.transactionTypeTextView).text = ""
-                    holder.itemView.findViewById<TextView>(R.id.transactionDetailsTextView).text = ""
-                    holder.itemView.findViewById<TextView>(R.id.transactionAmountChangeTextView).visibility = View.GONE
-                }
-            }
-            
-            override fun getItemCount(): Int {
-                return if (filteredTransactions.isEmpty()) 1 else filteredTransactions.size
-            }
-        }
+        // アダプターを再利用してデータ更新
+        transactionAdapter.updateTransactions(filteredTransactions)
         
         addLog("Displayed ${filteredTransactions.size} filtered transactions in UI")
     }
@@ -935,17 +889,17 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, NFCReader.T
                 
                 // 入力値の検証
                 if (minAmount != null && minAmount < 0) {
-                    Toast.makeText(this, "最小金額は0以上を指定してください", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.error_negative_min_amount), Toast.LENGTH_SHORT).show()
                     return@setPositiveButton
                 }
                 
                 if (maxAmount != null && maxAmount < 0) {
-                    Toast.makeText(this, "最大金額は0以上を指定してください", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.error_negative_max_amount), Toast.LENGTH_SHORT).show()
                     return@setPositiveButton
                 }
                 
                 if (minAmount != null && maxAmount != null && minAmount > maxAmount) {
-                    Toast.makeText(this, "最小金額は最大金額以下を指定してください", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.error_invalid_amount_range), Toast.LENGTH_SHORT).show()
                     return@setPositiveButton
                 }
                 
@@ -1023,7 +977,12 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, NFCReader.T
             val newLogs = if (currentLogs == "Debug logs will appear here...") {
                 logEntry
             } else {
-                "$currentLogs\n$logEntry"
+                // StringBuilderを使用してメモリ効率を改善
+                StringBuilder(currentLogs.length + logEntry.length + 1)
+                    .append(currentLogs)
+                    .append("\n")
+                    .append(logEntry)
+                    .toString()
             }
             
             // Keep only last 50 log lines to avoid memory issues
