@@ -4,6 +4,7 @@ package com.icpeek.app.databinding;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -31,6 +32,9 @@ public final class ActivityMainBinding implements ViewBinding {
 
   @NonNull
   public final TextView cardTypeTextView;
+
+  @NonNull
+  public final Button copyHistoryButton;
 
   @NonNull
   public final LinearLayout debugSection;
@@ -61,15 +65,17 @@ public final class ActivityMainBinding implements ViewBinding {
 
   private ActivityMainBinding(@NonNull CoordinatorLayout rootView,
       @NonNull MaterialCardView balanceCard, @NonNull TextView balanceTextView,
-      @NonNull TextView cardTypeTextView, @NonNull LinearLayout debugSection,
-      @NonNull RecyclerView historyRecyclerView, @NonNull TextView historyTitleTextView,
-      @NonNull TextView instructionTextView, @NonNull TextView logTextView,
-      @NonNull ProgressBar progressBar, @NonNull LinearLayout statusLayout,
-      @NonNull TextView statusTextView, @NonNull TextView titleTextView) {
+      @NonNull TextView cardTypeTextView, @NonNull Button copyHistoryButton,
+      @NonNull LinearLayout debugSection, @NonNull RecyclerView historyRecyclerView,
+      @NonNull TextView historyTitleTextView, @NonNull TextView instructionTextView,
+      @NonNull TextView logTextView, @NonNull ProgressBar progressBar,
+      @NonNull LinearLayout statusLayout, @NonNull TextView statusTextView,
+      @NonNull TextView titleTextView) {
     this.rootView = rootView;
     this.balanceCard = balanceCard;
     this.balanceTextView = balanceTextView;
     this.cardTypeTextView = cardTypeTextView;
+    this.copyHistoryButton = copyHistoryButton;
     this.debugSection = debugSection;
     this.historyRecyclerView = historyRecyclerView;
     this.historyTitleTextView = historyTitleTextView;
@@ -123,6 +129,12 @@ public final class ActivityMainBinding implements ViewBinding {
       id = R.id.cardTypeTextView;
       TextView cardTypeTextView = ViewBindings.findChildViewById(rootView, id);
       if (cardTypeTextView == null) {
+        break missingId;
+      }
+
+      id = R.id.copyHistoryButton;
+      Button copyHistoryButton = ViewBindings.findChildViewById(rootView, id);
+      if (copyHistoryButton == null) {
         break missingId;
       }
 
@@ -181,9 +193,9 @@ public final class ActivityMainBinding implements ViewBinding {
       }
 
       return new ActivityMainBinding((CoordinatorLayout) rootView, balanceCard, balanceTextView,
-          cardTypeTextView, debugSection, historyRecyclerView, historyTitleTextView,
-          instructionTextView, logTextView, progressBar, statusLayout, statusTextView,
-          titleTextView);
+          cardTypeTextView, copyHistoryButton, debugSection, historyRecyclerView,
+          historyTitleTextView, instructionTextView, logTextView, progressBar, statusLayout,
+          statusTextView, titleTextView);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

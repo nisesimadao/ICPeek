@@ -3240,6 +3240,7 @@ id contentPanel
 id contiguous
 id continuousVelocity
 id coordinator
+id copyHistoryButton
 id cos
 id counterclockwise
 id cradle

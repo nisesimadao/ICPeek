@@ -37,7 +37,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="ICPeek"
-                        android:textAppearance="@style/TextAppearance.ICPeek.LargeTitle"
+                        android:textAppearance="@style/TextAppearance.Material3.HeadlineLarge"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent" />
 
@@ -46,7 +46,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:text="ICカードを端末に近づけてください"
-                        android:textAppearance="@style/TextAppearance.ICPeek.Callout"
+                        android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
                         android:textColor="@color/secondary_label"
                         android:layout_marginTop="@dimen/spacing_sm"
                         app:layout_constraintStart_toStartOf="parent"
@@ -92,7 +92,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="残高"
-                        android:textAppearance="@style/TextAppearance.ICPeek.Footnote"
+                        android:textAppearance="@style/TextAppearance.Material3.LabelSmall"
                         android:textColor="@color/secondary_label"
                         android:layout_marginBottom="@dimen/spacing_sm" />
 
@@ -101,7 +101,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="--"
-                        android:textAppearance="@style/TextAppearance.ICPeek.Balance.Large"
+                        android:textAppearance="@style/TextAppearance.Material3.DisplayMedium"
                         android:layout_marginBottom="@dimen/spacing_md" />
 
                     <LinearLayout
@@ -132,7 +132,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="読み取り準備完了"
-                            android:textAppearance="@style/TextAppearance.ICPeek.Caption1"
+                            android:textAppearance="@style/TextAppearance.Material3.LabelLarge"
                             android:textColor="@color/tertiary_label"
                             android:layout_marginStart="@dimen/spacing_sm" />
 
@@ -149,13 +149,30 @@
                 android:orientation="vertical"
                 android:layout_marginTop="@dimen/spacing_xl">
 
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="@dimen/spacing_md">
+
                 <TextView
                     android:id="@+id/historyTitleTextView"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="取引履歴"
+                    android:textAppearance="@style/TextAppearance.Material3.HeadlineMedium" />
+
+                <Button
+                    android:id="@+id/copyHistoryButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="取引履歴"
-                    android:textAppearance="@style/TextAppearance.ICPeek.Title3"
-                    android:layout_marginBottom="@dimen/spacing_md" />
+                    android:text="履歴をコピー"
+                    android:textSize="16sp"
+                    android:textColor="?attr/colorPrimary"
+                    style="@style/Widget.Material3.Button.TextButton" />
+
+                </LinearLayout>
 
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
@@ -194,7 +211,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Debug Logs"
-            android:textAppearance="@style/TextAppearance.ICPeek.Caption1"
+            android:textAppearance="@style/TextAppearance.Material3.LabelMedium"
             android:layout_marginBottom="@dimen/spacing_sm" />
 
         <ScrollView
@@ -207,7 +224,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Debug logs will appear here..."
-                android:textAppearance="@style/TextAppearance.ICPeek.Caption2"
+                android:textAppearance="@style/TextAppearance.Material3.LabelSmall"
                 android:fontFamily="monospace"
                 android:padding="@dimen/spacing_sm" />
 

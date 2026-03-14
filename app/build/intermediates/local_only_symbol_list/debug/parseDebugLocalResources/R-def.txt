@@ -104,6 +104,7 @@ id backButton
 id balanceCard
 id balanceTextView
 id cardTypeTextView
+id copyHistoryButton
 id debugSection
 id historyRecyclerView
 id historyTitleTextView

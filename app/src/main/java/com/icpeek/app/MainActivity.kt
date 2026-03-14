@@ -5,11 +5,20 @@ import android.os.Bundle
 import android.nfc.NfcAdapter
 import android.nfc.Tag
 import android.nfc.tech.NfcF
+import android.nfc.NdefMessage
+import android.nfc.NdefRecord
+import android.app.PendingIntent
+import android.content.Intent
+import android.content.IntentFilter
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.ProgressBar
 import android.widget.TextView
+import android.widget.Button
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -28,8 +37,20 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, NFCReader.T
     private lateinit var progressBar: ProgressBar
     private lateinit var logTextView: TextView
     private lateinit var historyRecyclerView: RecyclerView
+    private lateinit var copyHistoryButton: Button
+    private lateinit var titleTextView: TextView
     private var nfcReader: NFCReader? = null
     private var transactionParser: TransactionParser? = null
+    private var currentTransactions: List<TransactionInfo> = emptyList()
+    
+    // Easter egg for mock data
+    private var titleTapCount = 0
+    private var lastTitleTapTime = 0L
+    
+    // NFC Intent handling for API < 29
+    private lateinit var pendingIntent: PendingIntent
+    private lateinit var intentFiltersArray: Array<IntentFilter>
+    private lateinit var techListsArray: Array<Array<String>>
     
     // API level check for ReaderMode (API 29+)
     private val isReaderModeSupported: Boolean
@@ -47,6 +68,7 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, NFCReader.T
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        // Initialize UI components
         balanceTextView = findViewById(R.id.balanceTextView)
         statusTextView = findViewById(R.id.statusTextView)
         cardTypeTextView = findViewById(R.id.cardTypeTextView)
@@ -54,9 +76,24 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, NFCReader.T
         progressBar = findViewById(R.id.progressBar)
         logTextView = findViewById(R.id.logTextView)
         historyRecyclerView = findViewById(R.id.historyRecyclerView)
+        copyHistoryButton = findViewById(R.id.copyHistoryButton)
+        titleTextView = findViewById(R.id.titleTextView)
         
         // Setup RecyclerView
         historyRecyclerView.layoutManager = LinearLayoutManager(this)
+        
+        // Set dynamic height for RecyclerView based on screen size
+        setRecyclerViewHeight()
+        
+        // Setup copy history button
+        copyHistoryButton.setOnClickListener {
+            copyHistoryToClipboard()
+        }
+        
+        // Setup Easter egg for mock data
+        titleTextView.setOnClickListener {
+            handleTitleTap()
+        }
         
         nfcAdapter = NfcAdapter.getDefaultAdapter(this)
         
@@ -74,9 +111,38 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, NFCReader.T
         
         // Set transaction callback
         nfcReader?.setTransactionCallback(this)
+        
+        // Initialize NFC Intent handling for API < 29
+        setupNFCIntentHandling()
 
         // Handle NFC intent
         handleIntent(intent)
+    }
+    
+    private fun setupNFCIntentHandling() {
+        // Create PendingIntent for NFC intent
+        val intent = Intent(this, javaClass).apply {
+            addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        }
+        pendingIntent = PendingIntent.getActivity(this, 0, intent, 
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_MUTABLE else 0)
+        
+        // Create Intent filters for NFC
+        val ndef = IntentFilter(NfcAdapter.ACTION_NDEF_DISCOVERED).apply {
+            try {
+                addDataType("*/*")
+            } catch (e: IntentFilter.MalformedMimeTypeException) {
+                throw RuntimeException("fail", e)
+            }
+        }
+        
+        val tech = IntentFilter(NfcAdapter.ACTION_TECH_DISCOVERED)
+        val tag = IntentFilter(NfcAdapter.ACTION_TAG_DISCOVERED)
+        
+        intentFiltersArray = arrayOf(ndef, tech, tag)
+        
+        // NFC technology list
+        techListsArray = arrayOf(arrayOf("android.nfc.tech.NfcF"))
     }
 
     override fun onResume() {
@@ -108,10 +174,8 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, NFCReader.T
     }
     
     private fun fallbackToForegroundDispatch(adapter: NfcAdapter) {
-        nfcReader?.let { reader ->
-            android.util.Log.d("MainActivity", "Enabling foreground dispatch")
-            adapter.enableForegroundDispatch(this, reader.pendingIntent, reader.intentFiltersArray, reader.techListsArray)
-        }
+        android.util.Log.d("MainActivity", "Enabling foreground dispatch")
+        adapter.enableForegroundDispatch(this, pendingIntent, intentFiltersArray, techListsArray)
     }
 
     override fun onPause() {
@@ -302,49 +366,9 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, NFCReader.T
     }
     
     private fun displayTransactions(transactions: List<TransactionInfo>) {
-        val transactionViews = mutableListOf<View>()
+        currentTransactions = transactions
+        addLog("Displaying ${transactions.size} transactions")
         
-        if (transactions.isEmpty()) {
-            val noHistoryView = TextView(this)
-            noHistoryView.text = "取引履歴が見つかりません"
-            noHistoryView.textSize = 14f
-            noHistoryView.setTextColor(0xFF666666.toInt())
-            noHistoryView.setPadding(16, 16, 16, 16)
-            transactionViews.add(noHistoryView)
-        } else {
-            val inflater = LayoutInflater.from(this)
-            
-            for (transaction in transactions) {
-                val transactionView = inflater.inflate(R.layout.transaction_item, null, false)
-                
-                // Set transaction data
-                transactionView.findViewById<TextView>(R.id.transactionDateTextView).text = transaction.getFormattedDate()
-                transactionView.findViewById<TextView>(R.id.transactionBalanceTextView).text = transaction.getFormattedBalance()
-                transactionView.findViewById<TextView>(R.id.transactionTypeTextView).text = transaction.getDisplayInfo()
-                transactionView.findViewById<TextView>(R.id.transactionDetailsTextView).text = 
-                    "残高: ${transaction.getFormattedBalance()} | 連番: ${transaction.sequence}"
-                
-                // Set amount change with color
-                val amountChangeTextView = transactionView.findViewById<TextView>(R.id.transactionAmountChangeTextView)
-                val amountChange = transaction.getFormattedAmountChange()
-                if (amountChange.isNotEmpty()) {
-                    amountChangeTextView.text = amountChange
-                    amountChangeTextView.setTextColor(transaction.getAmountChangeColor())
-                    amountChangeTextView.visibility = View.VISIBLE
-                } else {
-                    amountChangeTextView.visibility = View.GONE
-                }
-                
-                // Set click listener for transaction detail
-                transactionView.setOnClickListener {
-                    openTransactionDetail(transaction)
-                }
-                
-                transactionViews.add(transactionView)
-            }
-        }
-        
-        // Create a simple adapter for the RecyclerView
         historyRecyclerView.adapter = object : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             override fun onCreateViewHolder(parent: android.view.ViewGroup, viewType: Int): RecyclerView.ViewHolder {
                 val inflater = LayoutInflater.from(this@MainActivity)
@@ -353,7 +377,6 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, NFCReader.T
             }
             
             override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-                // Update the view with transaction data
                 val transaction = transactions.getOrNull(position)
                 if (transaction != null) {
                     holder.itemView.findViewById<TextView>(R.id.transactionDateTextView).text = transaction.getFormattedDate()
@@ -391,6 +414,201 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, NFCReader.T
         }
         
         addLog("Displayed ${transactions.size} transactions in UI")
+    }
+    
+    private fun copyHistoryToClipboard() {
+        addLog("copyHistoryToClipboard called, currentTransactions size: ${currentTransactions.size}")
+        
+        if (currentTransactions.isEmpty()) {
+            Toast.makeText(this, "コピーする履歴がありません", Toast.LENGTH_SHORT).show()
+            addLog("No transactions to copy")
+            return
+        }
+        
+        val historyText = buildString {
+            appendLine("=== ICカード取引履歴 ===")
+            appendLine("カードタイプ: ${cardTypeTextView.text}")
+            appendLine("現在残高: ${balanceTextView.text}")
+            appendLine("取引件数: ${currentTransactions.size}件")
+            appendLine()
+            
+            currentTransactions.forEachIndexed { index, transaction ->
+                appendLine("【取引 ${index + 1}】")
+                appendLine("日付: ${transaction.getFormattedDate()}")
+                appendLine("種別: ${transaction.getDisplayInfo()}")
+                appendLine("残高: ${transaction.getFormattedBalance()}")
+                appendLine("増減: ${transaction.getFormattedAmountChange()}")
+                appendLine("連番: ${transaction.sequence}")
+                appendLine("端末ID: ${transaction.terminalId}")
+                appendLine("処理ID: ${transaction.processId}")
+                appendLine("前回残高: ${if (transaction.previousBalance > 0) "¥${transaction.previousBalance}" else "なし"}")
+                appendLine("生差分: ${if (transaction.previousBalance > 0) transaction.balance - transaction.previousBalance else "なし"}")
+                appendLine("入線区: ${transaction.inLine}")
+                appendLine("入駅: ${transaction.inStation}")
+                appendLine("出線区: ${transaction.outLine}")
+                appendLine("出駅: ${transaction.outStation}")
+                appendLine("リージョン: ${transaction.region}")
+                appendLine()
+            }
+            
+            appendLine("=== Rawデータ ===")
+            currentTransactions.forEach { transaction ->
+                appendLine("${transaction.getFormattedDate()}: ${transaction.rawData}")
+            }
+        }
+        
+        // LogCatに出力
+        Log.d("ICPeek_CopyHistory", "=== コピーした取引履歴 ===")
+        Log.d("ICPeek_CopyHistory", historyText)
+        
+        val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
+        val clip = ClipData.newPlainText("ICカード取引履歴", historyText)
+        clipboard.setPrimaryClip(clip)
+        
+        Toast.makeText(this, "取引履歴をコピーしました", Toast.LENGTH_SHORT).show()
+        addLog("Copied ${currentTransactions.size} transactions to clipboard")
+        addLog("Copy content length: ${historyText.length} characters")
+    }
+    
+    private fun setRecyclerViewHeight() {
+        val displayMetrics = resources.displayMetrics
+        val screenHeightDp = displayMetrics.heightPixels / displayMetrics.density
+        
+        // Calculate appropriate height based on screen size
+        // Reserve space for other UI elements (status bar, app bar, other cards, etc.)
+        val reservedHeightDp = 400 // Approximate space for other elements
+        val availableHeightDp = screenHeightDp - reservedHeightDp
+        
+        // Set minimum and maximum bounds
+        val recyclerViewHeightDp = when {
+            availableHeightDp < 300 -> 300 // Minimum height
+            availableHeightDp > 600 -> 600 // Maximum height  
+            else -> availableHeightDp
+        }
+        
+        // Convert to pixels and set height
+        val recyclerViewHeightPx = (recyclerViewHeightDp.toFloat() * displayMetrics.density).toInt()
+        val layoutParams = historyRecyclerView.layoutParams
+        layoutParams.height = recyclerViewHeightPx
+        historyRecyclerView.layoutParams = layoutParams
+        
+        addLog("RecyclerView height set to ${recyclerViewHeightDp}dp (${recyclerViewHeightPx}px) based on screen height ${screenHeightDp}dp")
+    }
+    
+    private fun handleTitleTap() {
+        val currentTime = System.currentTimeMillis()
+        
+        // Reset tap count if more than 2 seconds between taps
+        if (currentTime - lastTitleTapTime > 2000) {
+            titleTapCount = 0
+        }
+        
+        titleTapCount++
+        lastTitleTapTime = currentTime
+        
+        if (titleTapCount >= 3) {
+            loadMockData()
+            titleTapCount = 0
+        }
+    }
+    
+    private fun loadMockData() {
+        addLog("=== Loading mock data (Easter egg) ===")
+        
+        val mockTransactions = listOf(
+            TransactionInfo(
+                terminalId = 199, terminalName = "物販端末", processId = 70, processName = "物販",
+                year = 2025, month = 9, day = 14,
+                inLine = 15, inStation = 229, outLine = 0, outStation = 0,
+                balance = 3705, sequence = 1572864, region = 192,
+                transactionType = "物販", rawData = "050F000F332E0FE50000790E000018C0",
+                previousBalance = -1
+            ),
+            TransactionInfo(
+                terminalId = 22, terminalName = "改札機", processId = 1, processName = "運賃支払(改札出場)",
+                year = 2025, month = 9, day = 14,
+                inLine = 10, inStation = 73, outLine = 10, outStation = 62,
+                balance = 3025, sequence = 1703936, region = 0,
+                transactionType = "JR", rawData = "16010002332E0A490A3ED10B00001A00",
+                previousBalance = 3705
+            ),
+            TransactionInfo(
+                terminalId = 199, terminalName = "物販端末", processId = 70, processName = "物販",
+                year = 2025, month = 9, day = 27,
+                inLine = 167, inStation = 44, outLine = 177, outStation = 101,
+                balance = 2485, sequence = 1769472, region = 0,
+                transactionType = "物販", rawData = "C7460000333BA72CB165B50900001B00",
+                previousBalance = 3025
+            ),
+            TransactionInfo(
+                terminalId = 201, terminalName = "Unknown (201)", processId = 70, processName = "物販",
+                year = 2025, month = 10, day = 8,
+                inLine = 175, inStation = 77, outLine = 55, outStation = 72,
+                balance = 1912, sequence = 1835008, region = 0,
+                transactionType = "物販", rawData = "C94600003348AF4D3748780700001C00",
+                previousBalance = 2485
+            ),
+            TransactionInfo(
+                terminalId = 22, terminalName = "改札機", processId = 1, processName = "運賃支払(改札出場)",
+                year = 2025, month = 11, day = 2,
+                inLine = 10, inStation = 62, outLine = 10, outStation = 57,
+                balance = 2582, sequence = 2031616, region = 0,
+                transactionType = "JR", rawData = "1601000233620A3E0A39160A00001F00",
+                previousBalance = 1912
+            ),
+            TransactionInfo(
+                terminalId = 8, terminalName = "券売機", processId = 2, processName = "チャージ",
+                year = 2025, month = 11, day = 2,
+                inLine = 10, inStation = 62, outLine = 0, outStation = 0,
+                balance = 2912, sequence = 1900544, region = 0,
+                transactionType = "チャージ", rawData = "0802000033620A3E0000600B00001D00",
+                previousBalance = 2582
+            ),
+            TransactionInfo(
+                terminalId = 200, terminalName = "自販機", processId = 70, processName = "物販",
+                year = 2025, month = 11, day = 15,
+                inLine = 93, inStation = 164, outLine = 112, outStation = 153,
+                balance = 1532, sequence = 2097152, region = 0,
+                transactionType = "物販", rawData = "C8460000336F5DA47099FC0500002000",
+                previousBalance = 2912
+            ),
+            TransactionInfo(
+                terminalId = 201, terminalName = "Unknown (201)", processId = 70, processName = "物販",
+                year = 2025, month = 11, day = 19,
+                inLine = 177, inStation = 45, outLine = 55, outStation = 71,
+                balance = 459, sequence = 2162688, region = 0,
+                transactionType = "物販", rawData = "C94600003373B12D3747CB0100002100",
+                previousBalance = 1532
+            ),
+            TransactionInfo(
+                terminalId = 8, terminalName = "券売機", processId = 2, processName = "チャージ",
+                year = 2025, month = 11, day = 29,
+                inLine = 10, inStation = 62, outLine = 0, outStation = 0,
+                balance = 1459, sequence = 2228224, region = 0,
+                transactionType = "チャージ", rawData = "08020000337D0A3E0000B30500002200",
+                previousBalance = 459
+            ),
+            TransactionInfo(
+                terminalId = 199, terminalName = "物販端末", processId = 70, processName = "物販",
+                year = 2025, month = 11, day = 29,
+                inLine = 111, inStation = 44, outLine = 177, outStation = 101,
+                balance = 831, sequence = 2293760, region = 0,
+                transactionType = "物販", rawData = "C7460000337D6F2CB1653F0300002300",
+                previousBalance = 1459
+            )
+        )
+        
+        // Update UI with mock data
+        balanceTextView.text = "¥831"
+        statusTextView.text = "Mock data loaded"
+        cardTypeTextView.text = "ICOCA"
+        cardTypeTextView.setBackgroundColor(0xFF4CAF50.toInt())
+        cardTypeTextView.setTextColor(0xFFFFFFFF.toInt())
+        
+        displayTransactions(mockTransactions)
+        
+        Toast.makeText(this, "モックデータを読み込みました！", Toast.LENGTH_SHORT).show()
+        addLog("Mock data loaded: ${mockTransactions.size} transactions")
     }
     
     override fun onTransactionsReceived(transactions: List<TransactionInfo>) {

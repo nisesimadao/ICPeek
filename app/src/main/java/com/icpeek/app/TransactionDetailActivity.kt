@@ -68,7 +68,7 @@ class TransactionDetailActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.rawDataTextView).text = transaction.rawData
         
         // Set up back button
-        findViewById<android.widget.Button>(R.id.backButton).setOnClickListener {
+        findViewById<androidx.appcompat.widget.AppCompatImageButton>(R.id.backButton).setOnClickListener {
             finish()
         }
         

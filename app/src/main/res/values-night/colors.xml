@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark theme colors -->
+    <color name="system_background">#000000</color>
+    <color name="secondary_system_background">#1C1C1E</color>
+    <color name="system_grouped_background">#2C2C2E</color>
+    
+    <!-- Label colors for dark theme -->
+    <color name="label">#FFFFFF</color>
+    <color name="secondary_label">#99FFFFFF</color>
+    <color name="tertiary_label">#66FFFFFF</color>
+    
+    <!-- Separator -->
+    <color name="separator">#38383A</color>
+    
+    <!-- System colors -->
+    <color name="system_blue">#0A84FF</color>
+    <color name="system_green">#30D158</color>
+    <color name="system_red">#FF453A</color>
+    <color name="system_orange">#FF9F0A</color>
+    <color name="system_gray">#8E8E93</color>
+    <color name="system_gray2">#636366</color>
+    
+    <!-- ICOCA colors -->
+    <color name="icoca_blue">#0A84FF</color>
+    
+    <!-- White for dark theme -->
+    <color name="white">#FFFFFF</color>
+</resources>

@@ -1,16 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:ns1="http://schemas.android.com/tools">
-    <style name="Theme.ICPeek" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+    <color name="icoca_blue">#0A84FF</color>
+    <color name="label">#FFFFFF</color>
+    <color name="secondary_label">#99FFFFFF</color>
+    <color name="secondary_system_background">#1C1C1E</color>
+    <color name="separator">#38383A</color>
+    <color name="system_background">#000000</color>
+    <color name="system_blue">#0A84FF</color>
+    <color name="system_gray">#8E8E93</color>
+    <color name="system_gray2">#636366</color>
+    <color name="system_green">#30D158</color>
+    <color name="system_grouped_background">#2C2C2E</color>
+    <color name="system_orange">#FF9F0A</color>
+    <color name="system_red">#FF453A</color>
+    <color name="tertiary_label">#66FFFFFF</color>
+    <color name="white">#FFFFFF</color>
+    <style name="Theme.ICPeek" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         
-        <item name="colorPrimary">@color/purple_200</item>
-        <item name="colorPrimaryVariant">@color/purple_700</item>
-        <item name="colorOnPrimary">@color/black</item>
+        <item name="android:statusBarColor" ns1:targetApi="l">@color/system_background</item>
+        <item name="android:windowLightStatusBar" ns1:targetApi="m">false</item>
         
-        <item name="colorSecondary">@color/teal_200</item>
-        <item name="colorSecondaryVariant">@color/teal_200</item>
-        <item name="colorOnSecondary">@color/black</item>
         
-        <item name="android:statusBarColor" ns1:targetApi="l">?attr/colorPrimaryVariant</item>
-        
+        <item name="android:navigationBarColor" ns1:targetApi="l">@color/system_background</item>
+        <item name="android:windowLightNavigationBar" ns1:targetApi="o_mr1">false</item>
     </style>
 </resources>

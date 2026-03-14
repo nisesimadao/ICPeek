@@ -4,10 +4,6 @@
         "source": "C:\\Users\\opevi\\.gradle\\daemon\\8.11.1\\com.icpeek.app-main-30:\\mipmap-hdpi\\ic_launcher_round.xml"
     },
     {
-        "merged": "com.icpeek.app-debug-28:/layout_activity_main.xml.flat",
-        "source": "com.icpeek.app-main-30:/layout/activity_main.xml"
-    },
-    {
         "merged": "C:\\Users\\opevi\\.gradle\\daemon\\8.11.1\\com.icpeek.app-debug-28:\\drawable_amount_change_background.xml.flat",
         "source": "C:\\Users\\opevi\\.gradle\\daemon\\8.11.1\\com.icpeek.app-main-30:\\drawable\\amount_change_background.xml"
     },
@@ -30,6 +26,10 @@
     {
         "merged": "C:\\Users\\opevi\\.gradle\\daemon\\8.11.1\\com.icpeek.app-debug-28:\\drawable_card_type_badge_background.xml.flat",
         "source": "C:\\Users\\opevi\\.gradle\\daemon\\8.11.1\\com.icpeek.app-main-30:\\drawable\\card_type_badge_background.xml"
+    },
+    {
+        "merged": "com.icpeek.app-debug-28:/drawable-night_amount_change_background.xml.flat",
+        "source": "com.icpeek.app-main-30:/drawable-night/amount_change_background.xml"
     },
     {
         "merged": "C:\\Users\\opevi\\.gradle\\daemon\\8.11.1\\com.icpeek.app-debug-28:\\mipmap-hdpi_ic_launcher.xml.flat",
