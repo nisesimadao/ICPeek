@@ -33,7 +33,7 @@
 23-->[androidx.core:core:1.10.1] C:\Users\opevi\.gradle\caches\8.11.1\transforms\f287a83c4a5c063f4978c9540d2e901f\transformed\core-1.10.1\AndroidManifest.xml:26:22-94
 24
 25    <application
-25-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:11:5-40:19
+25-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:11:5-51:19
 26        android:allowBackup="true"
 26-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:12:9-35
 27        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
@@ -48,68 +48,87 @@
 32-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:15:9-43
 33        android:label="@string/app_name"
 33-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:16:9-41
-34        android:roundIcon="@mipmap/ic_launcher_round"
-34-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:17:9-54
-35        android:supportsRtl="true"
-35-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:18:9-35
-36        android:testOnly="true"
-37        android:theme="@style/Theme.ICPeek" >
-37-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:19:9-44
-38        <activity
-38-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:22:9-33:20
-39            android:name="com.icpeek.app.MainActivity"
-39-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:23:13-41
-40            android:exported="true"
-40-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:24:13-36
-41            android:launchMode="singleTask"
-41-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:25:13-44
-42            android:screenOrientation="portrait" >
-42-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:26:13-49
-43            <intent-filter>
-43-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:27:13-30:29
-44                <action android:name="android.intent.action.MAIN" />
-44-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:28:17-69
-44-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:28:25-66
-45
-46                <category android:name="android.intent.category.LAUNCHER" />
-46-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:29:17-77
-46-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:29:27-74
-47            </intent-filter>
+34        android:requestLegacyExternalStorage="true"
+34-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:20:9-52
+35        android:roundIcon="@mipmap/ic_launcher_round"
+35-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:17:9-54
+36        android:supportsRtl="true"
+36-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:18:9-35
+37        android:testOnly="true"
+38        android:theme="@style/Theme.ICPeek" >
+38-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:19:9-44
+39        <provider
+40            android:name="androidx.core.content.FileProvider"
+40-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:24:13-62
+41            android:authorities="com.icpeek.app.fileprovider"
+41-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:25:13-64
+42            android:exported="false"
+42-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:26:13-37
+43            android:grantUriPermissions="true" >
+43-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:27:13-47
+44            <meta-data
+44-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:28:13-30:54
+45                android:name="android.support.FILE_PROVIDER_PATHS"
+45-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:29:17-67
+46                android:resource="@xml/file_paths" />
+46-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:30:17-51
+47        </provider>
 48
-49            <!-- Only use foreground dispatch for NFC -->
-50        </activity>
-51        <activity
-51-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:35:9-39:58
-52            android:name="com.icpeek.app.TransactionDetailActivity"
-52-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:36:13-54
-53            android:exported="false"
-53-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:37:13-37
-54            android:parentActivityName="com.icpeek.app.MainActivity"
-54-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:39:13-55
-55            android:screenOrientation="portrait" />
-55-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:38:13-49
+49        <activity
+49-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:33:9-44:20
+50            android:name="com.icpeek.app.MainActivity"
+50-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:34:13-41
+51            android:exported="true"
+51-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:35:13-36
+52            android:launchMode="singleTask"
+52-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:36:13-44
+53            android:screenOrientation="portrait" >
+53-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:37:13-49
+54            <intent-filter>
+54-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:38:13-41:29
+55                <action android:name="android.intent.action.MAIN" />
+55-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:39:17-69
+55-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:39:25-66
 56
-57        <provider
-57-->[androidx.emoji2:emoji2:1.2.0] C:\Users\opevi\.gradle\caches\8.11.1\transforms\6d715a85cb5d4b8c0afdd30975c18b5e\transformed\emoji2-1.2.0\AndroidManifest.xml:24:9-32:20
-58            android:name="androidx.startup.InitializationProvider"
-58-->[androidx.emoji2:emoji2:1.2.0] C:\Users\opevi\.gradle\caches\8.11.1\transforms\6d715a85cb5d4b8c0afdd30975c18b5e\transformed\emoji2-1.2.0\AndroidManifest.xml:25:13-67
-59            android:authorities="com.icpeek.app.androidx-startup"
-59-->[androidx.emoji2:emoji2:1.2.0] C:\Users\opevi\.gradle\caches\8.11.1\transforms\6d715a85cb5d4b8c0afdd30975c18b5e\transformed\emoji2-1.2.0\AndroidManifest.xml:26:13-68
-60            android:exported="false" >
-60-->[androidx.emoji2:emoji2:1.2.0] C:\Users\opevi\.gradle\caches\8.11.1\transforms\6d715a85cb5d4b8c0afdd30975c18b5e\transformed\emoji2-1.2.0\AndroidManifest.xml:27:13-37
-61            <meta-data
-61-->[androidx.emoji2:emoji2:1.2.0] C:\Users\opevi\.gradle\caches\8.11.1\transforms\6d715a85cb5d4b8c0afdd30975c18b5e\transformed\emoji2-1.2.0\AndroidManifest.xml:29:13-31:52
-62                android:name="androidx.emoji2.text.EmojiCompatInitializer"
-62-->[androidx.emoji2:emoji2:1.2.0] C:\Users\opevi\.gradle\caches\8.11.1\transforms\6d715a85cb5d4b8c0afdd30975c18b5e\transformed\emoji2-1.2.0\AndroidManifest.xml:30:17-75
-63                android:value="androidx.startup" />
-63-->[androidx.emoji2:emoji2:1.2.0] C:\Users\opevi\.gradle\caches\8.11.1\transforms\6d715a85cb5d4b8c0afdd30975c18b5e\transformed\emoji2-1.2.0\AndroidManifest.xml:31:17-49
-64            <meta-data
-64-->[androidx.lifecycle:lifecycle-process:2.4.1] C:\Users\opevi\.gradle\caches\8.11.1\transforms\d782caf83d5524a187a48869938a4e21\transformed\lifecycle-process-2.4.1\AndroidManifest.xml:31:13-33:52
-65                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
-65-->[androidx.lifecycle:lifecycle-process:2.4.1] C:\Users\opevi\.gradle\caches\8.11.1\transforms\d782caf83d5524a187a48869938a4e21\transformed\lifecycle-process-2.4.1\AndroidManifest.xml:32:17-78
-66                android:value="androidx.startup" />
-66-->[androidx.lifecycle:lifecycle-process:2.4.1] C:\Users\opevi\.gradle\caches\8.11.1\transforms\d782caf83d5524a187a48869938a4e21\transformed\lifecycle-process-2.4.1\AndroidManifest.xml:33:17-49
-67        </provider>
-68    </application>
-69
-70</manifest>
+57                <category android:name="android.intent.category.LAUNCHER" />
+57-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:40:17-77
+57-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:40:27-74
+58            </intent-filter>
+59
+60            <!-- Only use foreground dispatch for NFC -->
+61        </activity>
+62        <activity
+62-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:46:9-50:58
+63            android:name="com.icpeek.app.TransactionDetailActivity"
+63-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:47:13-54
+64            android:exported="false"
+64-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:48:13-37
+65            android:parentActivityName="com.icpeek.app.MainActivity"
+65-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:50:13-55
+66            android:screenOrientation="portrait" />
+66-->E:\VSCode\ICPeek\app\src\main\AndroidManifest.xml:49:13-49
+67
+68        <provider
+68-->[androidx.emoji2:emoji2:1.2.0] C:\Users\opevi\.gradle\caches\8.11.1\transforms\6d715a85cb5d4b8c0afdd30975c18b5e\transformed\emoji2-1.2.0\AndroidManifest.xml:24:9-32:20
+69            android:name="androidx.startup.InitializationProvider"
+69-->[androidx.emoji2:emoji2:1.2.0] C:\Users\opevi\.gradle\caches\8.11.1\transforms\6d715a85cb5d4b8c0afdd30975c18b5e\transformed\emoji2-1.2.0\AndroidManifest.xml:25:13-67
+70            android:authorities="com.icpeek.app.androidx-startup"
+70-->[androidx.emoji2:emoji2:1.2.0] C:\Users\opevi\.gradle\caches\8.11.1\transforms\6d715a85cb5d4b8c0afdd30975c18b5e\transformed\emoji2-1.2.0\AndroidManifest.xml:26:13-68
+71            android:exported="false" >
+71-->[androidx.emoji2:emoji2:1.2.0] C:\Users\opevi\.gradle\caches\8.11.1\transforms\6d715a85cb5d4b8c0afdd30975c18b5e\transformed\emoji2-1.2.0\AndroidManifest.xml:27:13-37
+72            <meta-data
+72-->[androidx.emoji2:emoji2:1.2.0] C:\Users\opevi\.gradle\caches\8.11.1\transforms\6d715a85cb5d4b8c0afdd30975c18b5e\transformed\emoji2-1.2.0\AndroidManifest.xml:29:13-31:52
+73                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+73-->[androidx.emoji2:emoji2:1.2.0] C:\Users\opevi\.gradle\caches\8.11.1\transforms\6d715a85cb5d4b8c0afdd30975c18b5e\transformed\emoji2-1.2.0\AndroidManifest.xml:30:17-75
+74                android:value="androidx.startup" />
+74-->[androidx.emoji2:emoji2:1.2.0] C:\Users\opevi\.gradle\caches\8.11.1\transforms\6d715a85cb5d4b8c0afdd30975c18b5e\transformed\emoji2-1.2.0\AndroidManifest.xml:31:17-49
+75            <meta-data
+75-->[androidx.lifecycle:lifecycle-process:2.4.1] C:\Users\opevi\.gradle\caches\8.11.1\transforms\d782caf83d5524a187a48869938a4e21\transformed\lifecycle-process-2.4.1\AndroidManifest.xml:31:13-33:52
+76                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+76-->[androidx.lifecycle:lifecycle-process:2.4.1] C:\Users\opevi\.gradle\caches\8.11.1\transforms\d782caf83d5524a187a48869938a4e21\transformed\lifecycle-process-2.4.1\AndroidManifest.xml:32:17-78
+77                android:value="androidx.startup" />
+77-->[androidx.lifecycle:lifecycle-process:2.4.1] C:\Users\opevi\.gradle\caches\8.11.1\transforms\d782caf83d5524a187a48869938a4e21\transformed\lifecycle-process-2.4.1\AndroidManifest.xml:33:17-49
+78        </provider>
+79    </application>
+80
+81</manifest>

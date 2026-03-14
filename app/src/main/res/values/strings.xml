@@ -49,7 +49,6 @@
     <!-- CSV Export -->
     <string name="csv_subject">ICカード取引履歴</string>
     <string name="csv_description">ICカードの取引履歴データ</string>
-    <string name="csv_filename_prefix">ICカード取引履歴</string>
     
     <!-- Search -->
     <string name="search_hint">取引を検索...</string>
@@ -77,4 +76,14 @@
     <string name="csv_header_out_station">出駅</string>
     <string name="csv_header_region">リージョン</string>
     <string name="csv_header_raw">Rawデータ</string>
+    
+    <!-- Error Messages -->
+    <string name="error_card_reading">カード読み取りエラー</string>
+    <string name="error_negative_min_amount">最小金額は0以上を指定してください</string>
+    <string name="error_negative_max_amount">最大金額は0以上を指定してください</string>
+    <string name="error_invalid_amount_range">最小金額は最大金額以下を指定してください</string>
+    
+    <!-- Missing strings -->
+    <string name="instruction_ready">ICカードを端末に近づけてください</string>
+    <string name="csv_filename_prefix">IC_Card_History</string>
 </resources>
