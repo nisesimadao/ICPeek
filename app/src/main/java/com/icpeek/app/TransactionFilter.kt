@@ -44,15 +44,18 @@ fun TransactionInfo.matchesFilter(filter: TransactionFilter): Boolean {
     // テキスト検索
     if (filter.searchText.isNotEmpty()) {
         val searchLower = filter.searchText.lowercase()
-        val displayInfo = getDisplayInfo()
-        val inStationText = getInStationName()
-        val outStationText = getOutStationName()
-        val formattedDateText = getFormattedDate()
         
-        val textMatch = displayInfo.lowercase().contains(searchLower) ||
-                      inStationText.lowercase().contains(searchLower) ||
-                      outStationText.lowercase().contains(searchLower) ||
-                      formattedDateText.lowercase().contains(searchLower)
+        // 検索対象を一度にまとめて処理
+        val searchTargets = listOf(
+            getDisplayInfo(),
+            getInStationName(),
+            getOutStationName(),
+            getFormattedDate()
+        )
+        
+        val textMatch = searchTargets.any { target ->
+            target.lowercase().contains(searchLower)
+        }
         if (!textMatch) return false
     }
     
@@ -78,6 +81,15 @@ fun TransactionInfo.matchesFilter(filter: TransactionFilter): Boolean {
     
     filter.maxAmount?.let { max ->
         if (balance > max) return false
+    }
+    
+    // マイナス残高の特別処理
+    if (balance < 0) {
+        // マイナス残高の場合、最小金額フィルターがなければ除外しない
+        filter.minAmount ?: return true
+        // 最小金額が設定されている場合、マイナス値も考慮
+        if (balance >= filter.minAmount) return true
+        return false
     }
     
     // 日付範囲フィルター

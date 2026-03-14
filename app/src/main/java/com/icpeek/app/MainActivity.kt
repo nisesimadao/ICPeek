@@ -31,7 +31,7 @@ import com.icpeek.app.nfc.NFCReader
 import com.icpeek.app.parser.TransactionParser
 import com.icpeek.app.util.CardTypeDetector
 import com.icpeek.app.TransactionFilter
-import com.icpeek.app.FilterType
+import com.icpeek.app.adapter.TransactionAdapter
 import java.io.File
 import java.io.FileWriter
 import com.google.android.material.textfield.TextInputEditText
@@ -59,6 +59,7 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, NFCReader.T
     private lateinit var searchContent: LinearLayout
     private lateinit var searchExpandIcon: ImageView
     private var isSearchExpanded = false
+    private lateinit var transactionAdapter: TransactionAdapter
     private var nfcReader: NFCReader? = null
     private var transactionParser: TransactionParser? = null
     private var currentTransactions: List<TransactionInfo> = emptyList()
@@ -116,6 +117,10 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, NFCReader.T
         
         // Setup RecyclerView
         historyRecyclerView.layoutManager = LinearLayoutManager(this)
+        transactionAdapter = TransactionAdapter(emptyList()) { transaction ->
+            openTransactionDetail(transaction)
+        }
+        historyRecyclerView.adapter = transactionAdapter
         
         // Set dynamic height for RecyclerView based on screen size
         setRecyclerViewHeight()
@@ -273,38 +278,24 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, NFCReader.T
             progressBar.visibility = View.VISIBLE
         }
         
+        var nfcF: NfcF? = null
         try {
-            val nfcF = NfcF.get(tag)
+            nfcF = NfcF.get(tag)
             if (nfcF != null) {
                 addLog("FeliCa technology found")
                 addLog("System code: ${nfcF.systemCode.toHexString()}")
                 addLog("Manufacturer: ${nfcF.manufacturer.toHexString()}")
                 
-                // Detect card type
-                val cardType = CardTypeDetector.detectCardType(
-                    nfcF.systemCode.toHexString(), 
-                    nfcF.manufacturer.toHexString()
-                )
-                addLog("Card type detected: $cardType")
-                
-                runOnUiThread {
-                    cardTypeTextView.text = cardType
-                    cardTypeTextView.setTextColor(android.graphics.Color.parseColor(CardTypeDetector.getCardColor(cardType)))
-                }
-                
                 nfcF.connect()
-                addLog("FeliCa connected")
                 
-                val balance = nfcReader?.readBalance(nfcF) ?: -1
+                // NFC読み取り処理
+                nfcReader?.readCard(nfcF)
                 
+            } else {
+                addLog("FeliCa technology not found")
                 runOnUiThread {
-                    if (balance >= 0) {
-                        balanceTextView.text = "Balance: ¥$balance"
-                        statusTextView.text = languageManager.getString("status_success")
-                        addLog("SUCCESS: Balance read successfully: ¥$balance")
-                    } else {
-                        balanceTextView.text = "Balance: --"
-                        statusTextView.text = languageManager.getString("status_failed")
+                    statusTextView.text = "FeliCaカードではありません"
+                    instructionTextView.text = languageManager.getString("instruction_ready")
                         addLog("ERROR: Failed to read balance")
                     }
                 }
@@ -768,23 +759,25 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, NFCReader.T
     }
     
     /**
-     * フィルターを適用
+     * フィルターを適用（スレッドセーフ）
      */
     private fun applyFilter() {
-        filteredTransactions = if (currentFilter.isActive()) {
-            currentTransactions.filter { it.matchesFilter(currentFilter) }
-        } else {
-            currentTransactions
+        runOnUiThread {
+            filteredTransactions = if (currentFilter.isActive()) {
+                currentTransactions.filter { it.matchesFilter(currentFilter) }
+            } else {
+                currentTransactions
+            }
+            
+            updateTransactionDisplay()
         }
-        
-        updateTransactionDisplay()
     }
     
     /**
      * 取引表示を更新
      */
     private fun updateTransactionDisplay() {
-        displayTransactions(filteredTransactions)
+        transactionAdapter.updateTransactions(filteredTransactions)
     }
     
     /**
@@ -934,8 +927,27 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, NFCReader.T
             .setTitle("金額範囲を設定")
             .setView(dialogView)
             .setPositiveButton("適用") { dialog, _ ->
-                val minAmount = minAmountEditText.text.toString().toIntOrNull()
-                val maxAmount = maxAmountEditText.text.toString().toIntOrNull()
+                val minAmountStr = minAmountEditText.text.toString().trim()
+                val maxAmountStr = maxAmountEditText.text.toString().trim()
+                
+                val minAmount = if (minAmountStr.isEmpty()) null else minAmountStr.toIntOrNull()
+                val maxAmount = if (maxAmountStr.isEmpty()) null else maxAmountStr.toIntOrNull()
+                
+                // 入力値の検証
+                if (minAmount != null && minAmount < 0) {
+                    Toast.makeText(this, "最小金額は0以上を指定してください", Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+                
+                if (maxAmount != null && maxAmount < 0) {
+                    Toast.makeText(this, "最大金額は0以上を指定してください", Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+                
+                if (minAmount != null && maxAmount != null && minAmount > maxAmount) {
+                    Toast.makeText(this, "最小金額は最大金額以下を指定してください", Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
                 
                 currentFilter = currentFilter.copy(
                     minAmount = minAmount,
