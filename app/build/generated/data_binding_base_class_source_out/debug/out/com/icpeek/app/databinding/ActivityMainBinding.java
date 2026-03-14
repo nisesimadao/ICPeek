@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -47,6 +48,9 @@ public final class ActivityMainBinding implements ViewBinding {
   public final TextView logTextView;
 
   @NonNull
+  public final ProgressBar progressBar;
+
+  @NonNull
   public final LinearLayout statusLayout;
 
   @NonNull
@@ -60,8 +64,8 @@ public final class ActivityMainBinding implements ViewBinding {
       @NonNull TextView cardTypeTextView, @NonNull LinearLayout debugSection,
       @NonNull RecyclerView historyRecyclerView, @NonNull TextView historyTitleTextView,
       @NonNull TextView instructionTextView, @NonNull TextView logTextView,
-      @NonNull LinearLayout statusLayout, @NonNull TextView statusTextView,
-      @NonNull TextView titleTextView) {
+      @NonNull ProgressBar progressBar, @NonNull LinearLayout statusLayout,
+      @NonNull TextView statusTextView, @NonNull TextView titleTextView) {
     this.rootView = rootView;
     this.balanceCard = balanceCard;
     this.balanceTextView = balanceTextView;
@@ -71,6 +75,7 @@ public final class ActivityMainBinding implements ViewBinding {
     this.historyTitleTextView = historyTitleTextView;
     this.instructionTextView = instructionTextView;
     this.logTextView = logTextView;
+    this.progressBar = progressBar;
     this.statusLayout = statusLayout;
     this.statusTextView = statusTextView;
     this.titleTextView = titleTextView;
@@ -151,6 +156,12 @@ public final class ActivityMainBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.progressBar;
+      ProgressBar progressBar = ViewBindings.findChildViewById(rootView, id);
+      if (progressBar == null) {
+        break missingId;
+      }
+
       id = R.id.statusLayout;
       LinearLayout statusLayout = ViewBindings.findChildViewById(rootView, id);
       if (statusLayout == null) {
@@ -171,7 +182,8 @@ public final class ActivityMainBinding implements ViewBinding {
 
       return new ActivityMainBinding((CoordinatorLayout) rootView, balanceCard, balanceTextView,
           cardTypeTextView, debugSection, historyRecyclerView, historyTitleTextView,
-          instructionTextView, logTextView, statusLayout, statusTextView, titleTextView);
+          instructionTextView, logTextView, progressBar, statusLayout, statusTextView,
+          titleTextView);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

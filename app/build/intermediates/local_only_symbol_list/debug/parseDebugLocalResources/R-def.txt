@@ -109,6 +109,7 @@ id historyRecyclerView
 id historyTitleTextView
 id instructionTextView
 id logTextView
+id progressBar
 id rawDataTextView
 id statusLayout
 id statusTextView

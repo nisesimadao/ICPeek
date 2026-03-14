@@ -223,7 +223,7 @@
     </style>
     <style name="Widget.ICPeek.CardTypeBadge" parent="Widget.AppCompat.TextView">
         <item name="android:background">@drawable/card_type_badge_background</item>
-        <item name="android:textSize">@dimen/text_size_caption_1</item>
+        <item name="android:textSize">12sp</item>
         <item name="android:fontFamily">sans-serif-medium</item>
         <item name="android:textColor">@color/white</item>
         <item name="android:paddingStart">@dimen/spacing_sm</item>

@@ -1,16 +1,18 @@
 package com.icpeek.app
 
+import android.os.Build
+import android.os.Bundle
 import android.nfc.NfcAdapter
 import android.nfc.Tag
 import android.nfc.tech.NfcF
-import android.os.Bundle
-import android.os.Build
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
+import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.icpeek.app.model.TransactionInfo
 import com.icpeek.app.nfc.NFCReader
 import com.icpeek.app.parser.TransactionParser
@@ -22,6 +24,8 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, NFCReader.T
     private lateinit var balanceTextView: TextView
     private lateinit var statusTextView: TextView
     private lateinit var cardTypeTextView: TextView
+    private lateinit var instructionTextView: TextView
+    private lateinit var progressBar: ProgressBar
     private lateinit var logTextView: TextView
     private lateinit var historyRecyclerView: RecyclerView
     private var nfcReader: NFCReader? = null
@@ -46,6 +50,8 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, NFCReader.T
         balanceTextView = findViewById(R.id.balanceTextView)
         statusTextView = findViewById(R.id.statusTextView)
         cardTypeTextView = findViewById(R.id.cardTypeTextView)
+        instructionTextView = findViewById(R.id.instructionTextView)
+        progressBar = findViewById(R.id.progressBar)
         logTextView = findViewById(R.id.logTextView)
         historyRecyclerView = findViewById(R.id.historyRecyclerView)
         
@@ -152,6 +158,9 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, NFCReader.T
         
         runOnUiThread {
             statusTextView.text = "ICカードを処理中..."
+            // 読み取り中のフィードバックを追加
+            instructionTextView.text = "ICカードをかざしたままお待ちください..."
+            progressBar.visibility = View.VISIBLE
         }
         
         try {
@@ -193,6 +202,12 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, NFCReader.T
                 // Close connection after all operations are done
                 nfcF.close()
                 addLog("FeliCa disconnected")
+                
+                // 読み取り完了後にUIをリセット
+                runOnUiThread {
+                    instructionTextView.text = "ICカードを端末に近づけてください"
+                    progressBar.visibility = View.GONE
+                }
             } else {
                 runOnUiThread {
                     statusTextView.text = "Not a FeliCa card"
@@ -345,7 +360,7 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, NFCReader.T
                     holder.itemView.findViewById<TextView>(R.id.transactionBalanceTextView).text = transaction.getFormattedBalance()
                     holder.itemView.findViewById<TextView>(R.id.transactionTypeTextView).text = transaction.getDisplayInfo()
                     holder.itemView.findViewById<TextView>(R.id.transactionDetailsTextView).text = 
-                        "残高: ${transaction.getFormattedBalance()} | 連番: ${transaction.sequence}"
+                        "連番: ${transaction.sequence}"
                     
                     val amountChangeTextView = holder.itemView.findViewById<TextView>(R.id.transactionAmountChangeTextView)
                     val amountChange = transaction.getFormattedAmountChange()

@@ -37,15 +37,6 @@
                 android:textColor="@color/label" />
 
             <TextView
-                android:id="@+id/transactionBalanceTextView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="¥831"
-                android:textAppearance="@style/TextAppearance.ICPeek.Callout"
-                android:textColor="@color/system_blue"
-                android:layout_marginStart="@dimen/spacing_sm" />
-
-            <TextView
                 android:id="@+id/transactionAmountChangeTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -56,6 +47,15 @@
                 android:background="@drawable/amount_change_background"
                 android:paddingHorizontal="@dimen/spacing_sm"
                 android:paddingVertical="@dimen/spacing_xs" />
+
+            <TextView
+                android:id="@+id/transactionBalanceTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="¥831"
+                android:textAppearance="@style/TextAppearance.ICPeek.Callout"
+                android:textColor="@color/system_blue"
+                android:layout_marginStart="@dimen/spacing_sm" />
 
         </LinearLayout>
 

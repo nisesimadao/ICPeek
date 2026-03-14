@@ -3,6 +3,7 @@ package com.icpeek.app
 import android.os.Bundle
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import com.icpeek.app.R
 import com.icpeek.app.model.TransactionInfo
 
 class TransactionDetailActivity : AppCompatActivity() {
@@ -14,12 +15,22 @@ class TransactionDetailActivity : AppCompatActivity() {
         setContentView(R.layout.activity_transaction_detail)
         
         // Get transaction from intent
-        transaction = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            intent.getParcelableExtra("TRANSACTION", TransactionInfo::class.java)
-        } else {
-            @Suppress("DEPRECATION")
-            intent.getParcelableExtra("TRANSACTION")
-        } ?: return
+        transaction = try {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                intent.getParcelableExtra("TRANSACTION", TransactionInfo::class.java)
+            } else {
+                @Suppress("DEPRECATION")
+                intent.getParcelableExtra("TRANSACTION")
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("TransactionDetailActivity", "Error getting transaction from intent", e)
+            finish()
+            return
+        } ?: run {
+            android.util.Log.e("TransactionDetailActivity", "No transaction provided in intent")
+            finish()
+            return
+        }
         
         setupUI()
     }
