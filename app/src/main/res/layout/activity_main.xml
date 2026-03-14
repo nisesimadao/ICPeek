@@ -36,7 +36,7 @@
                         android:id="@+id/titleTextView"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="ICPeek"
+                        android:text="@string/app_title"
                         android:textAppearance="@style/TextAppearance.Material3.HeadlineLarge"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent" />
@@ -45,7 +45,7 @@
                         android:id="@+id/instructionTextView"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:text="ICカードを端末に近づけてください"
+                        android:text="@string/instruction_nfc"
                         android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
                         android:textColor="@color/secondary_label"
                         android:layout_marginTop="@dimen/spacing_sm"
@@ -91,7 +91,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="残高"
+                        android:text="@string/balance_title"
                         android:textAppearance="@style/TextAppearance.Material3.LabelSmall"
                         android:textColor="@color/secondary_label"
                         android:layout_marginBottom="@dimen/spacing_sm" />
@@ -155,24 +155,120 @@
                     android:orientation="horizontal"
                     android:layout_marginBottom="@dimen/spacing_md">
 
-                <TextView
-                    android:id="@+id/historyTitleTextView"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="取引履歴"
-                    android:textAppearance="@style/TextAppearance.Material3.HeadlineMedium" />
+                    <TextView
+                        android:id="@+id/historyTitleTextView"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/history_title"
+                        android:textAppearance="@style/TextAppearance.Material3.HeadlineMedium" />
 
-                <Button
-                    android:id="@+id/copyHistoryButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="履歴をコピー"
-                    android:textSize="16sp"
-                    android:textColor="?attr/colorPrimary"
-                    style="@style/Widget.Material3.Button.TextButton" />
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <Button
+                            android:id="@+id/copyHistoryButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/copy_button"
+                            android:textSize="16sp"
+                            android:textColor="?attr/colorPrimary"
+                            style="@style/Widget.Material3.Button.TextButton" />
+
+                        <Button
+                            android:id="@+id/exportCsvButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/export_csv_button"
+                            android:textSize="16sp"
+                            android:textColor="?attr/colorPrimary"
+                            style="@style/Widget.Material3.Button.TextButton" />
+
+                    </LinearLayout>
 
                 </LinearLayout>
+
+                <!-- Search Section -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/spacing_md"
+                    app:cardCornerRadius="@dimen/corner_radius_md"
+                    app:cardElevation="@dimen/elevation_xs"
+                    app:cardBackgroundColor="@color/system_background"
+                    app:strokeWidth="@dimen/stroke_width_thin"
+                    app:strokeColor="@color/separator">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="@dimen/spacing_md">
+
+                        <!-- Search Input -->
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="@dimen/spacing_sm"
+                            app:hintEnabled="true"
+                            app:hint="@string/search_hint"
+                            app:startIconDrawable="@drawable/ic_search"
+                            app:endIconMode="clear_text">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/searchEditText"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="text"
+                                android:maxLines="1" />
+
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <!-- Filter Buttons -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+
+                            <Button
+                                android:id="@+id/filterDateButton"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="@string/filter_date"
+                                android:textSize="12sp"
+                                android:layout_marginEnd="@dimen/spacing_xs"
+                                style="@style/Widget.Material3.Button.OutlinedButton" />
+
+                            <Button
+                                android:id="@+id/filterAmountButton"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="@string/filter_amount"
+                                android:textSize="12sp"
+                                android:layout_marginStart="@dimen/spacing_xs"
+                                android:layout_marginEnd="@dimen/spacing_xs"
+                                style="@style/Widget.Material3.Button.OutlinedButton" />
+
+                            <Button
+                                android:id="@+id/filterTypeButton"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="@string/filter_type"
+                                android:textSize="12sp"
+                                android:layout_marginStart="@dimen/spacing_xs"
+                                style="@style/Widget.Material3.Button.OutlinedButton" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
 
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"

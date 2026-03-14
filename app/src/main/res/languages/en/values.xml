@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App Info -->
+    <string name="app_name">ICPeek</string>
+    
+    <!-- Main Activity -->
+    <string name="app_title">ICPeek</string>
+    <string name="instruction_nfc">Hold IC card near device</string>
+    <string name="instruction_reading">Keep IC card held while reading...</string>
+    
+    <!-- Balance Card -->
+    <string name="balance_label">Balance</string>
+    <string name="status_ready">Ready to read</string>
+    <string name="status_reading">Processing IC card...</string>
+    <string name="status_success">IC card read successfully</string>
+    <string name="status_failed">Failed to read balance</string>
+    <string name="status_not_felica">Not a FeliCa card</string>
+    
+    <!-- Transaction History -->
+    <string name="history_title">Transaction History</string>
+    <string name="copy_button">Copy</string>
+    <string name="export_csv_button">CSV</string>
+    <string name="no_history">No transaction history found</string>
+    
+    <!-- Copy/Export -->
+    <string name="copy_success">Transaction history copied</string>
+    <string name="copy_no_history">No history to copy</string>
+    <string name="export_success">CSV file created</string>
+    <string name="export_no_history">No history to export</string>
+    <string name="export_failed">CSV export failed</string>
+    <string name="share_history">Share transaction history</string>
+    
+    <!-- Transaction Detail -->
+    <string name="detail_title">Transaction Details</string>
+    <string name="back_button">Back</string>
+    <string name="detail_info">Detailed Information</string>
+    <string name="raw_data">Raw Data</string>
+    <string name="tap_to_copy">Tap to copy</string>
+    
+    <!-- Mock Data -->
+    <string name="mock_data_loaded">Mock data loaded</string>
+    <string name="mock_data_toast">Mock data loaded!</string>
+    
+    <!-- Debug -->
+    <string name="debug_logs">Debug Logs</string>
+    <string name="debug_logs_placeholder">Debug logs will appear here...</string>
+    
+    <!-- CSV Export -->
+    <string name="csv_subject">IC Card Transaction History</string>
+    <string name="csv_description">IC card transaction history data</string>
+    <string name="csv_filename_prefix">IC_Card_History</string>
+    
+    <!-- Search -->
+    <string name="search_hint">Search transactions...</string>
+    <string name="filter_date">Date</string>
+    <string name="filter_amount">Amount</string>
+    <string name="filter_type">Type</string>
+    <string name="filter_all">All</string>
+    <string name="filter_charge">Charge</string>
+    <string name="filter_purchase">Purchase</string>
+    <string name="filter_transit">Transit</string>
+    <string name="no_search_results">No search results</string>
+    <string name="clear_search">Clear search</string>
+    <string name="csv_header_date">Date</string>
+    <string name="csv_header_type">Type</string>
+    <string name="csv_header_balance">Balance</string>
+    <string name="csv_header_change">Change</string>
+    <string name="csv_header_sequence">Sequence</string>
+    <string name="csv_header_terminal">Terminal ID</string>
+    <string name="csv_header_process">Process ID</string>
+    <string name="csv_header_in_line">In Line</string>
+    <string name="csv_header_in_station">In Station</string>
+    <string name="csv_header_out_line">Out Line</string>
+    <string name="csv_header_out_station">Out Station</string>
+    <string name="csv_header_region">Region</string>
+    <string name="csv_header_raw">Raw Data</string>
+</resources>
