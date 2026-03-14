@@ -129,9 +129,20 @@ data class TransactionInfo(
     fun getAmountChangeColor(): Int {
         val change = getAmountChange()
         return when {
-            change > 0 -> 0xFF4CAF50.toInt()  // 緑（増加）
-            change < 0 -> 0xFFF44336.toInt()  // 赤（減少）
-            else -> 0xFF757575.toInt()    // 灰色（変化なし）
+            change > 0 -> 0xFF4CAF50.toInt() // Green for increase
+            change < 0 -> 0xFFF44336.toInt() // Red for decrease
+            else -> 0xFF757575.toInt()  // Gray for no change
         }
+    }
+    
+    // 駅名取得メソッド（検索用）
+    fun getInStationName(): String {
+        // TODO: 駅名のマッピングを実装
+        return "駅$inStation"
+    }
+    
+    fun getOutStationName(): String {
+        // TODO: 駅名のマッピングを実装
+        return "駅$outStation"
     }
 }

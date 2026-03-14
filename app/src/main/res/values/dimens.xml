@@ -69,6 +69,7 @@
     <dimen name="line_height_caption_2">15sp</dimen>
     
     <!-- Elevation -->
+    <dimen name="elevation_xs">1dp</dimen>
     <dimen name="elevation_sm">2dp</dimen>
     <dimen name="elevation_md">4dp</dimen>
     <dimen name="elevation_lg">8dp</dimen>

@@ -1,5 +1,8 @@
 package com.icpeek.app
 
+import com.icpeek.app.model.TransactionInfo
+import java.util.Calendar
+
 /**
  * 取引検索フィルターデータクラス
  */
@@ -41,10 +44,15 @@ fun TransactionInfo.matchesFilter(filter: TransactionFilter): Boolean {
     // テキスト検索
     if (filter.searchText.isNotEmpty()) {
         val searchLower = filter.searchText.lowercase()
-        val textMatch = getDisplayInfo().lowercase().contains(searchLower) ||
-                      inStation.lowercase().contains(searchLower) ||
-                      outStation.lowercase().contains(searchLower) ||
-                      getFormattedDate().contains(searchLower)
+        val displayInfo = getDisplayInfo()
+        val inStationText = getInStationName()
+        val outStationText = getOutStationName()
+        val formattedDateText = getFormattedDate()
+        
+        val textMatch = displayInfo.lowercase().contains(searchLower) ||
+                      inStationText.lowercase().contains(searchLower) ||
+                      outStationText.lowercase().contains(searchLower) ||
+                      formattedDateText.lowercase().contains(searchLower)
         if (!textMatch) return false
     }
     
@@ -73,8 +81,21 @@ fun TransactionInfo.matchesFilter(filter: TransactionFilter): Boolean {
     }
     
     // 日付範囲フィルター
-    // Note: TransactionInfoに日付情報を追加する必要がある場合
-    // 現在はフォーマットされた日付文字列で簡易的に判定
+    filter.startDate?.let { start ->
+        val transactionDate = Calendar.getInstance().apply {
+            set(year, month - 1, day, 0, 0, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
+        if (transactionDate < start) return false
+    }
+    
+    filter.endDate?.let { end ->
+        val transactionDate = Calendar.getInstance().apply {
+            set(year, month - 1, day, 23, 59, 59)
+            set(Calendar.MILLISECOND, 999)
+        }.timeInMillis
+        if (transactionDate > end) return false
+    }
     
     return true
 }

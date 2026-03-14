@@ -4,7 +4,7 @@
     <selectionStates>
       <SelectionState runConfigName="ICPeek">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2026-03-14T09:23:07.801357500Z">
+        <DropdownSelection timestamp="2026-03-14T12:11:16.580386Z">
           <Target type="DEFAULT_BOOT">
             <handle>
               <DeviceId pluginId="PhysicalDevice" identifier="serial=RF8R11QCMWD" />

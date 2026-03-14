@@ -15,6 +15,8 @@ import android.content.ClipboardManager
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
+import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Button
@@ -23,12 +25,15 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.core.content.FileProvider
+import com.icpeek.app.R
 import com.icpeek.app.model.TransactionInfo
 import com.icpeek.app.nfc.NFCReader
 import com.icpeek.app.parser.TransactionParser
 import com.icpeek.app.util.CardTypeDetector
+import com.icpeek.app.TransactionFilter
+import com.icpeek.app.FilterType
 import java.io.File
-import androidx.recyclerview.widget.RecyclerView
+import java.io.FileWriter
 import com.google.android.material.textfield.TextInputEditText
 import java.text.SimpleDateFormat
 import java.util.*
@@ -50,11 +55,15 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, NFCReader.T
     private lateinit var filterDateButton: Button
     private lateinit var filterAmountButton: Button
     private lateinit var filterTypeButton: Button
+    private lateinit var searchHeader: LinearLayout
+    private lateinit var searchContent: LinearLayout
+    private lateinit var searchExpandIcon: ImageView
+    private var isSearchExpanded = false
     private var nfcReader: NFCReader? = null
     private var transactionParser: TransactionParser? = null
     private var currentTransactions: List<TransactionInfo> = emptyList()
     private var filteredTransactions: List<TransactionInfo> = emptyList()
-    private var currentFilter: TransactionFilter = TransactionFilter()
+    private var currentFilter = TransactionFilter(filterType = FilterType.CHARGE)
     
     // Easter egg for mock data
     private var titleTapCount = 0
@@ -101,6 +110,9 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, NFCReader.T
         filterDateButton = findViewById(R.id.filterDateButton)
         filterAmountButton = findViewById(R.id.filterAmountButton)
         filterTypeButton = findViewById(R.id.filterTypeButton)
+        searchHeader = findViewById(R.id.searchHeader)
+        searchContent = findViewById(R.id.searchContent)
+        searchExpandIcon = findViewById(R.id.searchExpandIcon)
         
         // Setup RecyclerView
         historyRecyclerView.layoutManager = LinearLayoutManager(this)
@@ -120,6 +132,9 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, NFCReader.T
         
         // Setup search functionality
         setupSearchFunctionality()
+        
+        // Setup search expand/collapse
+        setupSearchExpandCollapse()
         
         // Setup Easter egg for mock data
         titleTextView.setOnClickListener {
@@ -400,8 +415,10 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, NFCReader.T
         currentTransactions = transactions
         addLog("Displaying ${transactions.size} transactions")
         
-        // フィルターを適用して表示
-        applyFilter()
+        // 初回表示時のみフィルターを適用
+        if (filteredTransactions.isEmpty()) {
+            filteredTransactions = transactions
+        }
         
         historyRecyclerView.adapter = object : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             override fun onCreateViewHolder(parent: android.view.ViewGroup, viewType: Int): RecyclerView.ViewHolder {
@@ -771,6 +788,50 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, NFCReader.T
     }
     
     /**
+     * 検索セクションの展開・折りたたみを設定
+     */
+    private fun setupSearchExpandCollapse() {
+        searchHeader.setOnClickListener {
+            toggleSearchExpansion()
+        }
+    }
+    
+    /**
+     * 検索セクションの展開・折りたたみを切り替え
+     */
+    private fun toggleSearchExpansion() {
+        isSearchExpanded = !isSearchExpanded
+        
+        if (isSearchExpanded) {
+            // 展開アニメーション
+            searchContent.visibility = View.VISIBLE
+            searchExpandIcon.setImageResource(R.drawable.ic_expand_less)
+            
+            // スムーズな展開アニメーション
+            searchContent.alpha = 0f
+            searchContent.translationY = -20f
+            searchContent.animate()
+                .alpha(1f)
+                .translationY(0f)
+                .setDuration(200)
+                .start()
+        } else {
+            // 折りたたみアニメーション
+            searchExpandIcon.setImageResource(R.drawable.ic_expand_more)
+            
+            // スムーズな折りたたみアニメーション
+            searchContent.animate()
+                .alpha(0f)
+                .translationY(-20f)
+                .setDuration(200)
+                .withEndAction {
+                    searchContent.visibility = View.GONE
+                }
+                .start()
+        }
+    }
+    
+    /**
      * フィルター種別ダイアログを表示
      */
     private fun showFilterTypeDialog() {
@@ -811,27 +872,118 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, NFCReader.T
      * 日付フィルターダイアログを表示
      */
     private fun showDateFilterDialog() {
-        // 簡易的な実装 - 今後拡張可能
-        Toast.makeText(this, "Date filter coming soon!", Toast.LENGTH_SHORT).show()
+        val calendar = Calendar.getInstance()
+        val currentYear = calendar.get(Calendar.YEAR)
+        val currentMonth = calendar.get(Calendar.MONTH)
+        val currentDay = calendar.get(Calendar.DAY_OF_MONTH)
+        
+        // 開始日ダイアログ
+        val startDateDialog = android.app.DatePickerDialog(
+            this,
+            { _, year, month, dayOfMonth ->
+                val startDateCalendar = Calendar.getInstance()
+                startDateCalendar.set(year, month, dayOfMonth, 0, 0, 0)
+                startDateCalendar.set(Calendar.MILLISECOND, 0)
+                val startTime = startDateCalendar.timeInMillis
+                
+                // 終了日ダイアログ
+                val endDateDialog = android.app.DatePickerDialog(
+                    this,
+                    { _, endYear, endMonth, endDayOfMonth ->
+                        val endDateCalendar = Calendar.getInstance()
+                        endDateCalendar.set(endYear, endMonth, endDayOfMonth, 23, 59, 59)
+                        endDateCalendar.set(Calendar.MILLISECOND, 999)
+                        val endTime = endDateCalendar.timeInMillis
+                        
+                        currentFilter = currentFilter.copy(
+                            startDate = startTime,
+                            endDate = endTime
+                        )
+                        applyFilter()
+                        updateFilterButtonTexts()
+                    },
+                    currentYear,
+                    currentMonth,
+                    currentDay
+                )
+                endDateDialog.setTitle("終了日を選択")
+                endDateDialog.show()
+            },
+            currentYear,
+            currentMonth,
+            currentDay
+        )
+        startDateDialog.setTitle("開始日を選択")
+        startDateDialog.show()
     }
     
     /**
      * 金額フィルターダイアログを表示
      */
     private fun showAmountFilterDialog() {
-        // 簡易的な実装 - 今後拡張可能
-        Toast.makeText(this, "Amount filter coming soon!", Toast.LENGTH_SHORT).show()
+        val context = this
+        val dialogView = layoutInflater.inflate(R.layout.dialog_amount_filter, null)
+        val minAmountEditText = dialogView.findViewById<android.widget.EditText>(R.id.minAmountEditText)
+        val maxAmountEditText = dialogView.findViewById<android.widget.EditText>(R.id.maxAmountEditText)
+        
+        // 現在の値を設定
+        currentFilter.minAmount?.let { minAmountEditText.setText(it.toString()) }
+        currentFilter.maxAmount?.let { maxAmountEditText.setText(it.toString()) }
+        
+        androidx.appcompat.app.AlertDialog.Builder(context)
+            .setTitle("金額範囲を設定")
+            .setView(dialogView)
+            .setPositiveButton("適用") { dialog, _ ->
+                val minAmount = minAmountEditText.text.toString().toIntOrNull()
+                val maxAmount = maxAmountEditText.text.toString().toIntOrNull()
+                
+                currentFilter = currentFilter.copy(
+                    minAmount = minAmount,
+                    maxAmount = maxAmount
+                )
+                applyFilter()
+                updateFilterButtonTexts()
+                dialog.dismiss()
+            }
+            .setNegativeButton("キャンセル") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .setNeutralButton("クリア") { dialog, _ ->
+                currentFilter = currentFilter.copy(
+                    minAmount = null,
+                    maxAmount = null
+                )
+                applyFilter()
+                updateFilterButtonTexts()
+                dialog.dismiss()
+            }
+            .show()
     }
     
     /**
      * フィルターボタンのテキストを更新
      */
     private fun updateFilterButtonTexts() {
+        // 種別ボタン
         filterTypeButton.text = when (currentFilter.filterType) {
             FilterType.ALL -> languageManager.getString("filter_all")
             FilterType.CHARGE -> languageManager.getString("filter_charge")
             FilterType.PURCHASE -> languageManager.getString("filter_purchase")
             FilterType.TRANSIT -> languageManager.getString("filter_transit")
+        }
+        
+        // 日付ボタン
+        filterDateButton.text = if (currentFilter.startDate != null || currentFilter.endDate != null) {
+            "日付✓"
+        } else {
+            languageManager.getString("filter_date")
+        }
+        
+        // 金額ボタン
+        filterAmountButton.text = if (currentFilter.minAmount != null || currentFilter.maxAmount != null) {
+            "金額✓"
+        } else {
+            languageManager.getString("filter_amount")
         }
     }
     

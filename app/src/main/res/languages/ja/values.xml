@@ -9,6 +9,7 @@
     <string name="instruction_reading">ICカードをかざしたままお待ちください...</string>
     
     <!-- Balance Card -->
+    <string name="balance_title">残高</string>
     <string name="balance_label">残高</string>
     <string name="status_ready">読み取り準備完了</string>
     <string name="status_reading">ICカードを処理中...</string>

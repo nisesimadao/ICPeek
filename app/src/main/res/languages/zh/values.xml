@@ -9,6 +9,7 @@
     <string name="instruction_reading">请保持IC卡靠近设备...</string>
     
     <!-- Balance Card -->
+    <string name="balance_title">余额</string>
     <string name="balance_label">余额</string>
     <string name="status_ready">准备读取</string>
     <string name="status_reading">正在处理IC卡...</string>

@@ -204,65 +204,128 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="@dimen/spacing_md">
+                        android:orientation="vertical">
 
-                        <!-- Search Input -->
-                        <com.google.android.material.textfield.TextInputLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="@dimen/spacing_sm"
-                            app:hintEnabled="true"
-                            app:hint="@string/search_hint"
-                            app:startIconDrawable="@drawable/ic_search"
-                            app:endIconMode="clear_text">
-
-                            <com.google.android.material.textfield.TextInputEditText
-                                android:id="@+id/searchEditText"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:inputType="text"
-                                android:maxLines="1" />
-
-                        </com.google.android.material.textfield.TextInputLayout>
-
-                        <!-- Filter Buttons -->
+                        <!-- Search Header (Always Visible) -->
                         <LinearLayout
+                            android:id="@+id/searchHeader"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
-                            android:gravity="center_vertical">
+                            android:gravity="center_vertical"
+                            android:padding="@dimen/spacing_md"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:background="?android:attr/selectableItemBackground">
 
-                            <Button
-                                android:id="@+id/filterDateButton"
+                            <ImageView
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:src="@drawable/ic_search"
+                                android:tint="@color/system_blue"
+                                android:layout_marginEnd="@dimen/spacing_sm" />
+
+                            <TextView
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:text="@string/filter_date"
-                                android:textSize="12sp"
-                                android:layout_marginEnd="@dimen/spacing_xs"
-                                style="@style/Widget.Material3.Button.OutlinedButton" />
+                                android:text="検索・フィルター"
+                                android:textSize="16sp"
+                                android:textColor="@color/label"
+                                android:textStyle="bold" />
 
-                            <Button
-                                android:id="@+id/filterAmountButton"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="@string/filter_amount"
-                                android:textSize="12sp"
-                                android:layout_marginStart="@dimen/spacing_xs"
-                                android:layout_marginEnd="@dimen/spacing_xs"
-                                style="@style/Widget.Material3.Button.OutlinedButton" />
+                            <ImageView
+                                android:id="@+id/searchExpandIcon"
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:src="@drawable/ic_expand_more"
+                                app:tint="@color/secondary_label" />
 
-                            <Button
-                                android:id="@+id/filterTypeButton"
-                                android:layout_width="0dp"
+                        </LinearLayout>
+
+                        <!-- Search Content (Expandable) -->
+                        <LinearLayout
+                            android:id="@+id/searchContent"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:padding="@dimen/spacing_md"
+                            android:paddingTop="0dp"
+                            android:visibility="gone">
+
+                            <!-- Search Input -->
+                            <com.google.android.material.textfield.TextInputLayout
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="@string/filter_type"
-                                android:textSize="12sp"
-                                android:layout_marginStart="@dimen/spacing_xs"
-                                style="@style/Widget.Material3.Button.OutlinedButton" />
+                                android:layout_marginBottom="@dimen/spacing_sm"
+                                app:hintEnabled="true"
+                                android:hint="@string/search_hint"
+                                app:startIconDrawable="@drawable/ic_search"
+                                app:endIconMode="clear_text"
+                                app:boxStrokeColor="@color/system_blue"
+                                app:boxStrokeWidth="1dp"
+                                app:boxBackgroundColor="@color/system_background">
+
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/searchEditText"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:inputType="text"
+                                    android:maxLines="1" />
+
+                            </com.google.android.material.textfield.TextInputLayout>
+
+                            <!-- Filter Buttons -->
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical">
+
+                                <Button
+                                    android:id="@+id/filterDateButton"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:text="@string/filter_date"
+                                    android:textSize="12sp"
+                                    android:layout_marginEnd="@dimen/spacing_xs"
+                                    android:textColor="@color/system_blue"
+                                    app:strokeColor="@color/system_blue"
+                                    app:strokeWidth="1dp"
+                                    app:cornerRadius="8dp"
+                                    style="@style/Widget.Material3.Button.OutlinedButton" />
+
+                                <Button
+                                    android:id="@+id/filterAmountButton"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:text="@string/filter_amount"
+                                    android:textSize="12sp"
+                                    android:layout_marginStart="@dimen/spacing_xs"
+                                    android:layout_marginEnd="@dimen/spacing_xs"
+                                    android:textColor="@color/system_blue"
+                                    app:strokeColor="@color/system_blue"
+                                    app:strokeWidth="1dp"
+                                    app:cornerRadius="8dp"
+                                    style="@style/Widget.Material3.Button.OutlinedButton" />
+
+                                <Button
+                                    android:id="@+id/filterTypeButton"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:text="@string/filter_type"
+                                    android:textSize="12sp"
+                                    android:layout_marginStart="@dimen/spacing_xs"
+                                    android:textColor="@color/system_blue"
+                                    app:strokeColor="@color/system_blue"
+                                    app:strokeWidth="1dp"
+                                    app:cornerRadius="8dp"
+                                    style="@style/Widget.Material3.Button.OutlinedButton" />
+
+                            </LinearLayout>
 
                         </LinearLayout>
 
