@@ -288,7 +288,8 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, NFCReader.T
                 nfcF.connect()
                 
                 // NFC読み取り処理
-                nfcReader?.readCard(nfcF)
+                val balance = nfcReader?.readBalance(nfcF)
+                addLog("Balance read: $balance")
                 
                 // 読み取り完了後の処理
                 runOnUiThread {
