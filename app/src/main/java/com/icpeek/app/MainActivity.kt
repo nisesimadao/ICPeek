@@ -5,6 +5,8 @@ import android.os.Bundle
 import android.nfc.NfcAdapter
 import android.nfc.Tag
 import android.nfc.tech.NfcF
+import android.nfc.NdefMessage
+import android.nfc.NdefRecord
 import android.app.PendingIntent
 import android.content.Intent
 import android.content.IntentFilter
@@ -23,21 +25,20 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.core.content.FileProvider
-import androidx.lifecycle.lifecycleScope
 import com.icpeek.app.R
+import com.icpeek.app.model.TransactionInfo
+import com.icpeek.app.nfc.NFCReader
+import com.icpeek.app.parser.TransactionParser
+import com.icpeek.app.util.CardTypeDetector
 import com.icpeek.app.TransactionFilter
 import com.icpeek.app.adapter.TransactionAdapter
-import com.icpeek.shared.platform.NFCReader
-import com.icpeek.shared.model.TransactionInfo
-import com.icpeek.shared.model.CardInfo
 import java.io.File
 import java.io.FileWriter
 import com.google.android.material.textfield.TextInputEditText
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlinx.coroutines.launch
 
-class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
+class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, NFCReader.TransactionCallback {
 
     private var nfcAdapter: NfcAdapter? = null
     private lateinit var balanceTextView: TextView
@@ -60,6 +61,7 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
     private var isSearchExpanded = false
     private lateinit var transactionAdapter: TransactionAdapter
     private var nfcReader: NFCReader? = null
+    private var transactionParser: TransactionParser? = null
     private var currentTransactions: List<TransactionInfo> = emptyList()
     private var filteredTransactions: List<TransactionInfo> = emptyList()
     private var currentFilter = TransactionFilter(filterType = FilterType.CHARGE)
@@ -68,7 +70,7 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
     private var titleTapCount = 0
     private var lastTitleTapTime = 0L
     
-    // NFC Intent handling (kept for compatibility)
+    // NFC Intent handling for API < 29
     private lateinit var pendingIntent: PendingIntent
     private lateinit var intentFiltersArray: Array<IntentFilter>
     private lateinit var techListsArray: Array<Array<String>>
@@ -155,10 +157,13 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
         
         addLog("NFC adapter initialized successfully")
         
-        // Initialize shared NFC reader
         nfcReader = NFCReader(this)
+        transactionParser = TransactionParser()
         
-        // Initialize NFC Intent handling (kept for compatibility)
+        // Set transaction callback
+        nfcReader?.setTransactionCallback(this)
+        
+        // Initialize NFC Intent handling for API < 29
         setupNFCIntentHandling()
 
         // Handle NFC intent
@@ -193,357 +198,807 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
 
     override fun onResume() {
         super.onResume()
+        android.util.Log.d("MainActivity", "onResume called (API ${Build.VERSION.SDK_INT})")
         
-        if (nfcAdapter != null) {
+        nfcAdapter?.let { adapter ->
             if (isReaderModeSupported) {
-                // Enable ReaderMode for API 29+
-                nfcAdapter?.enableReaderMode(
-                    this,
-                    this,
-                    NfcAdapter.FLAG_READER_NFC_F or NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK,
-                    null
-                )
-                addLog("NFC ReaderMode enabled (API 29+)")
+                android.util.Log.d("MainActivity", "Using enableReaderMode (API 29+)")
+                try {
+                    val flags = NfcAdapter.FLAG_READER_NFC_F or NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK
+                    adapter.enableReaderMode(
+                        this,           // Activity
+                        this,           // Callback
+                        flags,          // Flags
+                        null             // Bundle options
+                    )
+                } catch (e: Exception) {
+                    android.util.Log.e("MainActivity", "Failed to enable reader mode", e)
+                    fallbackToForegroundDispatch(adapter)
+                }
             } else {
-                // Fallback to intent-based NFC for older APIs
-                enableNFCIntentDispatch()
-                addLog("NFC Intent dispatch enabled (API < 29)")
+                android.util.Log.d("MainActivity", "Using enableForegroundDispatch (API < 29)")
+                fallbackToForegroundDispatch(adapter)
             }
-        }
-        
-        statusTextView.text = languageManager.getString("status_ready")
-    }
-    
-    override fun onPause() {
-        super.onPause()
-        
-        if (nfcAdapter != null) {
-            if (isReaderModeSupported) {
-                nfcAdapter?.disableReaderMode(this)
-                addLog("NFC ReaderMode disabled")
-            } else {
-                disableNFCIntentDispatch()
-                addLog("NFC Intent dispatch disabled")
-            }
+        } ?: run {
+            android.util.Log.e("MainActivity", "NFC adapter is null")
         }
     }
     
-    private fun enableNFCIntentDispatch() {
-        nfcAdapter?.enableForegroundDispatch(
-            this,
-            pendingIntent,
-            intentFiltersArray,
-            techListsArray
-        )
-    }
-    
-    private fun disableNFCIntentDispatch() {
-        nfcAdapter?.disableForegroundDispatch(this)
+    private fun fallbackToForegroundDispatch(adapter: NfcAdapter) {
+        android.util.Log.d("MainActivity", "Enabling foreground dispatch")
+        adapter.enableForegroundDispatch(this, pendingIntent, intentFiltersArray, techListsArray)
     }
 
-    override fun onNewIntent(intent: Intent?) {
+    override fun onPause() {
+        super.onPause()
+        nfcAdapter?.let { adapter ->
+            if (isReaderModeSupported) {
+                adapter.disableReaderMode(this)
+            } else {
+                adapter.disableForegroundDispatch(this)
+            }
+        }
+    }
+
+    override fun onNewIntent(intent: android.content.Intent) {
         super.onNewIntent(intent)
+        android.util.Log.d("MainActivity", "onNewIntent called with action: ${intent.action}")
         handleIntent(intent)
     }
-    
-    private fun handleIntent(intent: Intent?) {
-        if (intent == null) return
+
+    private fun handleIntent(intent: android.content.Intent) {
+        addLog("=== Intent Received ===")
+        addLog("Action: ${intent.action}")
+        addLog("Extras: ${intent.extras?.keySet()?.joinToString(", ")}")
         
-        val action = intent.action
-        addLog("Intent received: $action")
-        
-        if (action == NfcAdapter.ACTION_TECH_DISCOVERED || 
-            action == NfcAdapter.ACTION_TAG_DISCOVERED ||
-            action == NfcAdapter.ACTION_NDEF_DISCOVERED) {
-            
-            val tag = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                intent.getParcelableExtra(NfcAdapter.EXTRA_TAG, Tag::class.java)
-            } else {
-                @Suppress("DEPRECATION")
-                intent.getParcelableExtra(NfcAdapter.EXTRA_TAG)
+        // Always try to get the tag regardless of action
+        val tag = intent.getParcelableExtra<Tag>(NfcAdapter.EXTRA_TAG)
+        if (tag != null) {
+            addLog("Tag found: ${tag.javaClass.simpleName}")
+            addLog("Tag technologies: ${tag.techList.joinToString(", ")}")
+            processNFCTag(tag)
+        } else {
+            addLog("No tag found in intent - checking all extras")
+            intent.extras?.keySet()?.forEach { key ->
+                addLog("Extra $key: ${intent.extras?.get(key)}")
             }
-            
-            tag?.let {
-                addLog("Processing tag from intent...")
-                processNFCTag(it)
+        }
+        
+        addLog("=== End Intent Processing ===")
+    }
+
+    private fun processNFCTag(tag: Tag) {
+        addLog("=== NFC Tag Detected ===")
+        addLog("Tag technologies: ${tag.techList.joinToString(", ")}")
+        
+        runOnUiThread {
+            statusTextView.text = getString(R.string.status_reading)
+            instructionTextView.text = getString(R.string.instruction_reading)
+            progressBar.visibility = View.VISIBLE
+        }
+        
+        var nfcF: NfcF? = null
+        try {
+            nfcF = NfcF.get(tag)
+            if (nfcF != null) {
+                addLog("FeliCa technology found")
+                addLog("System code: ${nfcF.systemCode.toHexString()}")
+                addLog("Manufacturer: ${nfcF.manufacturer.toHexString()}")
+                
+                nfcF.connect()
+                
+                // NFC読み取り処理
+                val balance = nfcReader?.readBalance(nfcF)
+                addLog("Balance read: $balance")
+                
+                // 読み取り完了後の処理
+                runOnUiThread {
+                    instructionTextView.text = languageManager.getString("instruction_ready")
+                    progressBar.visibility = View.GONE
+                }
+                
+            } else {
+                addLog("FeliCa technology not found")
+                runOnUiThread {
+                    statusTextView.text = languageManager.getString("status_not_felica")
+                    instructionTextView.text = languageManager.getString("instruction_ready")
+                    progressBar.visibility = View.GONE
+                }
+            }
+        } catch (e: Exception) {
+            addLog("Error processing NFC tag: ${e.message}")
+            runOnUiThread {
+                statusTextView.text = getString(R.string.error_card_reading)
+                instructionTextView.text = getString(R.string.instruction_ready)
+                progressBar.visibility = View.GONE
+            }
+        } finally {
+            // 確実に接続をクローズ
+            try {
+                nfcF?.close()
+                addLog("NFC connection closed")
+            } catch (e: Exception) {
+                addLog("Error closing NFC connection: ${e.message}")
             }
         }
     }
     
-    private fun processNFCTag(tag: Tag) {
-        lifecycleScope.launch {
-            try {
-                runOnUiThread {
-                    statusTextView.text = languageManager.getString("status_reading")
-                    progressBar.visibility = View.VISIBLE
-                    addLog("Starting card reading...")
-                }
-                
-                // Use shared NFC reader
-                val cardInfo = nfcReader?.readCardFromTag(tag)
-                
-                runOnUiThread {
-                    progressBar.visibility = View.GONE
+    private fun readTransactionHistory(nfcF: NfcF) {
+        try {
+            addLog("Reading transaction history...")
+            
+            // Get IDm from polling response
+            val pollingCommand = nfcReader?.felicaServiceInstance?.createPollingCommand()
+            if (pollingCommand != null) {
+                val pollingResponse = nfcF.transceive(pollingCommand)
+                if (pollingResponse != null && pollingResponse.size >= 12) {
+                    val idm = ByteArray(8)
+                    System.arraycopy(pollingResponse, 2, idm, 0, 8)
                     
-                    if (cardInfo != null) {
-                        displayCardInfo(cardInfo)
-                        addLog("Card successfully read!")
-                    } else {
-                        statusTextView.text = languageManager.getString("status_error")
-                        addLog("Failed to read card")
+                    // Read 10 history blocks
+                    val historyCommand = createHistoryReadCommand(idm, 10)
+                    val historyResponse = nfcF.transceive(historyCommand)
+                    
+                    if (historyResponse != null && historyResponse.size >= 13) {
+                        parseAndDisplayHistory(historyResponse)
                     }
                 }
-                
-            } catch (e: Exception) {
-                runOnUiThread {
-                    progressBar.visibility = View.GONE
-                    statusTextView.text = languageManager.getString("status_error")
-                    addLog("Error reading card: ${e.message}")
+            }
+        } catch (e: Exception) {
+            addLog("ERROR reading history: ${e.message}")
+        }
+    }
+    
+    private fun createHistoryReadCommand(idm: ByteArray, blockCount: Int): ByteArray {
+        val command = java.io.ByteArrayOutputStream(100)
+        
+        command.write(0)                    // data length. change after all byte set.
+        command.write(0x06)                 // Felica command, Read Without Encryption
+        command.write(idm)                  // NFC ID (8byte)
+        
+        command.write(1)                    // service code length (2byte)
+        command.write(0x0F)                 // low byte of service code (little endian)
+        command.write(0x09)                 // high byte of service code (little endian)
+        command.write(blockCount)           // number of blocks
+        
+        for (i in 0 until blockCount) {
+            command.write(0x80)             // ブロックエレメント上位バイト
+            command.write(i)                // ブロック番号
+        }
+        
+        val result = command.toByteArray()
+        result[0] = (result.size).toByte()  // 先頭１バイトはデータ長
+        return result
+    }
+    
+    private fun parseAndDisplayHistory(response: ByteArray) {
+        try {
+            val blockCount = response[12].toInt() and 0xFF
+            addLog("Found $blockCount transaction blocks")
+            
+            val transactions = mutableListOf<TransactionInfo>()
+            
+            for (i in 0 until blockCount) {
+                val blockOffset = 13 + i * 16
+                if (response.size >= blockOffset + 16) {
+                    val transaction = transactionParser?.parseTransaction(response, blockOffset, i)
+                    if (transaction != null) {
+                        transactions.add(transaction)
+                    }
                 }
             }
+            
+            // Display transactions on UI
+            runOnUiThread {
+                displayTransactions(transactions)
+            }
+            
+        } catch (e: Exception) {
+            addLog("ERROR parsing history: ${e.message}")
         }
     }
     
-    private fun displayCardInfo(cardInfo: CardInfo) {
-        // Display card type
-        cardTypeTextView.text = cardInfo.cardType
-        cardTypeTextView.setTextColor(getCardTypeColor(cardInfo.cardType))
+    private fun displayTransactions(transactions: List<TransactionInfo>) {
+        currentTransactions = transactions
+        addLog("Displaying ${transactions.size} transactions")
         
-        // Display balance
-        balanceTextView.text = cardInfo.balance.getFormattedBalance()
-        
-        // Display transactions
-        currentTransactions = cardInfo.transactions
-        filteredTransactions = currentTransactions
-        updateTransactionDisplay()
-        
-        statusTextView.text = languageManager.getString("status_success")
-        addLog("Card Type: ${cardInfo.cardType}")
-        addLog("Balance: ¥${cardInfo.balance}")
-        addLog("Transactions: ${cardInfo.transactions.size}")
-    }
-    
-    private fun getCardTypeColor(cardType: String): Int {
-        return when {
-            cardType.contains("Suica") || cardType.contains("PASMO") -> 0xFF4CAF50.toInt()
-            cardType.contains("ICOCA") -> 0xFF2196F3.toInt()
-            cardType.contains("Edy") -> 0xFFFF9800.toInt()
-            cardType.contains("WAON") -> 0xFFE91E63.toInt()
-            cardType.contains("nanaco") -> 0xFF9C27B0.toInt()
-            else -> 0xFF757575.toInt()
+        // 初回表示時のみフィルターを適用
+        if (filteredTransactions.isEmpty()) {
+            filteredTransactions = transactions
         }
-    }
-    
-    private fun Int.getFormattedBalance(): String {
-        return "¥$this"
-    }
-    
-    private fun updateTransactionDisplay() {
+        
+        // アダプターを再利用してデータ更新
         transactionAdapter.updateTransactions(filteredTransactions)
-    }
-    
-    private fun openTransactionDetail(transaction: TransactionInfo) {
-        val intent = Intent(this, TransactionDetailActivity::class.java).apply {
-            putExtra("transaction", transaction)
-        }
-        startActivity(intent)
-    }
-    
-    private fun setRecyclerViewHeight() {
-        val displayMetrics = resources.displayMetrics
-        val screenHeight = displayMetrics.heightPixels
-        val maxHeight = (screenHeight * 0.4).toInt()
         
-        historyRecyclerView.layoutParams = historyRecyclerView.layoutParams.apply {
-            height = maxHeight
-        }
+        addLog("Displayed ${filteredTransactions.size} filtered transactions in UI")
     }
     
     private fun copyHistoryToClipboard() {
+        addLog("copyHistoryToClipboard called, currentTransactions size: ${currentTransactions.size}")
+        
         if (currentTransactions.isEmpty()) {
-            Toast.makeText(this, "No transactions to copy", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, languageManager.getString("copy_no_history"), Toast.LENGTH_SHORT).show()
+            addLog("No transactions to copy")
             return
         }
         
         val historyText = buildString {
-            appendLine("=== IC Card Transaction History ===")
-            appendLine("Card Type: ${cardTypeTextView.text}")
-            appendLine("Current Balance: ${balanceTextView.text}")
+            appendLine("=== ICカード取引履歴 ===")
+            appendLine("カードタイプ: ${cardTypeTextView.text}")
+            appendLine("現在残高: ${balanceTextView.text}")
+            appendLine("取引件数: ${currentTransactions.size}件")
             appendLine()
             
             currentTransactions.forEachIndexed { index, transaction ->
-                appendLine("${index + 1}. ${transaction.getFormattedDate()} - ${transaction.processName}")
-                appendLine("   Amount: ${transaction.getFormattedAmountChange()}")
-                appendLine("   Balance: ${transaction.getFormattedBalance()}")
-                appendLine("   Terminal: ${transaction.terminalName}")
+                appendLine("【取引 ${index + 1}】")
+                appendLine("日付: ${transaction.getFormattedDate()}")
+                appendLine("種別: ${transaction.getDisplayInfo()}")
+                appendLine("残高: ${transaction.getFormattedBalance()}")
+                appendLine("増減: ${transaction.getFormattedAmountChange()}")
+                appendLine("連番: ${transaction.sequence}")
+                appendLine("端末ID: ${transaction.terminalId}")
+                appendLine("処理ID: ${transaction.processId}")
+                appendLine("前回残高: ${if (transaction.previousBalance > 0) "¥${transaction.previousBalance}" else "なし"}")
+                appendLine("生差分: ${if (transaction.previousBalance > 0) transaction.balance - transaction.previousBalance else "なし"}")
+                appendLine("入線区: ${transaction.inLine}")
+                appendLine("入駅: ${transaction.inStation}")
+                appendLine("出線区: ${transaction.outLine}")
+                appendLine("出駅: ${transaction.outStation}")
+                appendLine("リージョン: ${transaction.region}")
                 appendLine()
+            }
+            
+            appendLine("=== Rawデータ ===")
+            currentTransactions.forEach { transaction ->
+                appendLine("${transaction.getFormattedDate()}: ${transaction.rawData}")
             }
         }
         
+        // LogCatに出力
+        Log.d("ICPeek_CopyHistory", "=== コピーした取引履歴 ===")
+        Log.d("ICPeek_CopyHistory", historyText)
+        
         val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
-        val clip = ClipData.newPlainText("IC Card History", historyText)
+        val clip = ClipData.newPlainText("ICカード取引履歴", historyText)
         clipboard.setPrimaryClip(clip)
         
-        Toast.makeText(this, "Transaction history copied to clipboard", Toast.LENGTH_SHORT).show()
-        addLog("Transaction history copied to clipboard")
+        Toast.makeText(this, "取引履歴をコピーしました", Toast.LENGTH_SHORT).show()
+        addLog("Copied ${currentTransactions.size} transactions to clipboard")
+        addLog("Copy content length: ${historyText.length} characters")
     }
     
     private fun exportHistoryToCsv() {
+        addLog("exportHistoryToCsv called, currentTransactions size: ${currentTransactions.size}")
+        
         if (currentTransactions.isEmpty()) {
-            Toast.makeText(this, "No transactions to export", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, languageManager.getString("export_no_history"), Toast.LENGTH_SHORT).show()
+            addLog("No transactions to export")
             return
         }
         
         try {
-            val fileName = "icpeek_transactions_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())}.csv"
-            val file = File(getExternalFilesDir(null), fileName)
+            // Generate CSV content
+            val csvContent = generateCsvContent()
             
-            FileWriter(file).use { writer ->
-                // Write CSV header
-                writer.appendLine("Date,Process,Terminal,Amount Change,Balance,Raw Data")
-                
-                // Write transactions
-                currentTransactions.forEach { transaction ->
-                    writer.appendLine(
-                        "${transaction.getFormattedDate()},${transaction.processName},${transaction.terminalName},${transaction.getFormattedAmountChange()},${transaction.getFormattedBalance()},${transaction.rawData}"
-                    )
-                }
+            // Create file
+            val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+            val fileName = "ICカード取引履歴_${timestamp}.csv"
+            val csvFile = File(getExternalFilesDir(null), fileName)
+            
+            // Write to file
+            FileWriter(csvFile).use { writer ->
+                writer.write(csvContent)
             }
             
-            val uri = FileProvider.getUriForFile(this, "${applicationContext.packageName}.fileprovider", file)
-            val shareIntent = Intent(Intent.ACTION_SEND).apply {
+            // Share file
+            val uri = FileProvider.getUriForFile(
+                this,
+                "${applicationContext.packageName}.fileprovider",
+                csvFile
+            )
+            
+            val shareIntent = Intent().apply {
+                action = Intent.ACTION_SEND
                 type = "text/csv"
                 putExtra(Intent.EXTRA_STREAM, uri)
-                putExtra(Intent.EXTRA_SUBJECT, "IC Card Transaction History")
+                putExtra(Intent.EXTRA_SUBJECT, "ICカード取引履歴")
+                putExtra(Intent.EXTRA_TEXT, "ICカードの取引履歴データ")
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
             
-            startActivity(Intent.createChooser(shareIntent, "Share Transaction History"))
-            addLog("Transaction history exported to CSV: $fileName")
+            startActivity(Intent.createChooser(shareIntent, languageManager.getString("share_history")))
+            
+            Toast.makeText(this, languageManager.getString("export_success"), Toast.LENGTH_SHORT).show()
+            addLog("CSV exported: $fileName (${csvContent.length} characters)")
             
         } catch (e: Exception) {
-            Toast.makeText(this, "Failed to export transactions", Toast.LENGTH_SHORT).show()
-            addLog("Failed to export transactions: ${e.message}")
+            Toast.makeText(this, languageManager.getString("export_failed"), Toast.LENGTH_SHORT).show()
+            addLog("ERROR exporting CSV: ${e.message}")
+            e.printStackTrace()
         }
     }
     
-    private fun setupSearchFunctionality() {
-        searchEditText.addTextChangedListener(object : android.text.TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                filterTransactions(s?.toString() ?: "")
-            }
-            override fun afterTextChanged(s: android.text.Editable?) {}
-        })
+    private fun generateCsvContent(): String {
+        val csv = StringBuilder()
         
-        filterDateButton.setOnClickListener { /* TODO: Implement date filter */ }
-        filterAmountButton.setOnClickListener { /* TODO: Implement amount filter */ }
-        filterTypeButton.setOnClickListener { /* TODO: Implement type filter */ }
+        // CSV header
+        csv.appendLine("日付,種別,残高,増減,連番,端末ID,処理ID,入線区,入駅,出線区,出駅,リージョン,Rawデータ")
+        
+        // CSV data
+        currentTransactions.forEach { transaction ->
+            csv.appendLine("${transaction.getFormattedDate()}," +
+                    "${transaction.getDisplayInfo()}," +
+                    "${transaction.balance}," +
+                    "${transaction.getFormattedAmountChange()}," +
+                    "${transaction.sequence}," +
+                    "${transaction.terminalId}," +
+                    "${transaction.processId}," +
+                    "${transaction.inLine}," +
+                    "${transaction.inStation}," +
+                    "${transaction.outLine}," +
+                    "${transaction.outStation}," +
+                    "${transaction.region}," +
+                    "\"${transaction.rawData}\"")
+        }
+        
+        return csv.toString()
     }
     
-    private fun filterTransactions(searchText: String) {
-        filteredTransactions = if (searchText.isEmpty()) {
-            currentTransactions
-        } else {
-            currentTransactions.filter { transaction ->
-                transaction.processName.contains(searchText, ignoreCase = true) ||
-                transaction.terminalName.contains(searchText, ignoreCase = true) ||
-                transaction.transactionType.contains(searchText, ignoreCase = true)
-            }
+    private fun setRecyclerViewHeight() {
+        val displayMetrics = resources.displayMetrics
+        val screenHeightDp = displayMetrics.heightPixels / displayMetrics.density
+        
+        // Calculate appropriate height based on screen size
+        // Reserve space for other UI elements (status bar, app bar, other cards, etc.)
+        val reservedHeightDp = 400 // Approximate space for other elements
+        val availableHeightDp = screenHeightDp - reservedHeightDp
+        
+        // Set minimum and maximum bounds
+        val recyclerViewHeightDp = when {
+            availableHeightDp < 300 -> 300 // Minimum height
+            availableHeightDp > 600 -> 600 // Maximum height  
+            else -> availableHeightDp
         }
-        updateTransactionDisplay()
-    }
-    
-    private fun setupSearchExpandCollapse() {
-        searchHeader.setOnClickListener {
-            isSearchExpanded = !isSearchExpanded
-            searchContent.visibility = if (isSearchExpanded) View.VISIBLE else View.GONE
-            searchExpandIcon.rotation = if (isSearchExpanded) 180f else 0f
-        }
+        
+        // Convert to pixels and set height
+        val recyclerViewHeightPx = (recyclerViewHeightDp.toFloat() * displayMetrics.density).toInt()
+        val layoutParams = historyRecyclerView.layoutParams
+        layoutParams.height = recyclerViewHeightPx
+        historyRecyclerView.layoutParams = layoutParams
+        
+        addLog("RecyclerView height set to ${recyclerViewHeightDp}dp (${recyclerViewHeightPx}px) based on screen height ${screenHeightDp}dp")
     }
     
     private fun handleTitleTap() {
         val currentTime = System.currentTimeMillis()
-        if (currentTime - lastTitleTapTime < 500) {
-            titleTapCount++
-            if (titleTapCount >= 5) {
-                loadMockData()
-                titleTapCount = 0
-            }
-        } else {
-            titleTapCount = 1
+        
+        // Reset tap count if more than 2 seconds between taps
+        if (currentTime - lastTitleTapTime > 2000) {
+            titleTapCount = 0
         }
+        
+        titleTapCount++
         lastTitleTapTime = currentTime
+        
+        if (titleTapCount >= 3) {
+            loadMockData()
+            titleTapCount = 0
+        }
     }
     
     private fun loadMockData() {
-        // Mock data for testing
+        addLog("=== Loading mock data (Easter egg) ===")
+        
         val mockTransactions = listOf(
             TransactionInfo(
-                terminalId = 199,
-                terminalName = "物販端末",
-                processId = 70,
-                processName = "物販",
-                year = 2024,
-                month = 3,
-                day = 16,
-                inLine = 0x00,
-                inStation = 0x00,
-                outLine = 0x00,
-                outStation = 0x00,
-                balance = 1230,
-                sequence = 12345,
-                region = 0x00,
-                transactionType = "物販",
-                rawData = "MOCK_DATA_001"
+                terminalId = 199, terminalName = "物販端末", processId = 70, processName = "物販",
+                year = 2025, month = 9, day = 14,
+                inLine = 15, inStation = 229, outLine = 0, outStation = 0,
+                balance = 3705, sequence = 1572864, region = 192,
+                transactionType = "物販", rawData = "050F000F332E0FE50000790E000018C0",
+                previousBalance = -1
             ),
             TransactionInfo(
-                terminalId = 9,
-                terminalName = "入金機",
-                processId = 2,
-                processName = "チャージ",
-                year = 2024,
-                month = 3,
-                day = 15,
-                inLine = 0x00,
-                inStation = 0x00,
-                outLine = 0x00,
-                outStation = 0x00,
-                balance = 2000,
-                sequence = 12344,
-                region = 0x00,
-                transactionType = "チャージ",
-                rawData = "MOCK_DATA_002",
-                previousBalance = 1230
+                terminalId = 22, terminalName = "改札機", processId = 1, processName = "運賃支払(改札出場)",
+                year = 2025, month = 9, day = 14,
+                inLine = 10, inStation = 73, outLine = 10, outStation = 62,
+                balance = 3025, sequence = 1703936, region = 0,
+                transactionType = "JR", rawData = "16010002332E0A490A3ED10B00001A00",
+                previousBalance = 3705
+            ),
+            TransactionInfo(
+                terminalId = 199, terminalName = "物販端末", processId = 70, processName = "物販",
+                year = 2025, month = 9, day = 27,
+                inLine = 167, inStation = 44, outLine = 177, outStation = 101,
+                balance = 2485, sequence = 1769472, region = 0,
+                transactionType = "物販", rawData = "C7460000333BA72CB165B50900001B00",
+                previousBalance = 3025
+            ),
+            TransactionInfo(
+                terminalId = 201, terminalName = "Unknown (201)", processId = 70, processName = "物販",
+                year = 2025, month = 10, day = 8,
+                inLine = 175, inStation = 77, outLine = 55, outStation = 72,
+                balance = 1912, sequence = 1835008, region = 0,
+                transactionType = "物販", rawData = "C94600003348AF4D3748780700001C00",
+                previousBalance = 2485
+            ),
+            TransactionInfo(
+                terminalId = 22, terminalName = "改札機", processId = 1, processName = "運賃支払(改札出場)",
+                year = 2025, month = 11, day = 2,
+                inLine = 10, inStation = 62, outLine = 10, outStation = 57,
+                balance = 2582, sequence = 2031616, region = 0,
+                transactionType = "JR", rawData = "1601000233620A3E0A39160A00001F00",
+                previousBalance = 1912
+            ),
+            TransactionInfo(
+                terminalId = 8, terminalName = "券売機", processId = 2, processName = "チャージ",
+                year = 2025, month = 11, day = 2,
+                inLine = 10, inStation = 62, outLine = 0, outStation = 0,
+                balance = 2912, sequence = 1900544, region = 0,
+                transactionType = "チャージ", rawData = "0802000033620A3E0000600B00001D00",
+                previousBalance = 2582
+            ),
+            TransactionInfo(
+                terminalId = 200, terminalName = "自販機", processId = 70, processName = "物販",
+                year = 2025, month = 11, day = 15,
+                inLine = 93, inStation = 164, outLine = 112, outStation = 153,
+                balance = 1532, sequence = 2097152, region = 0,
+                transactionType = "物販", rawData = "C8460000336F5DA47099FC0500002000",
+                previousBalance = 2912
+            ),
+            TransactionInfo(
+                terminalId = 201, terminalName = "Unknown (201)", processId = 70, processName = "物販",
+                year = 2025, month = 11, day = 19,
+                inLine = 177, inStation = 45, outLine = 55, outStation = 71,
+                balance = 459, sequence = 2162688, region = 0,
+                transactionType = "物販", rawData = "C94600003373B12D3747CB0100002100",
+                previousBalance = 1532
+            ),
+            TransactionInfo(
+                terminalId = 8, terminalName = "券売機", processId = 2, processName = "チャージ",
+                year = 2025, month = 11, day = 29,
+                inLine = 10, inStation = 62, outLine = 0, outStation = 0,
+                balance = 1459, sequence = 2228224, region = 0,
+                transactionType = "チャージ", rawData = "08020000337D0A3E0000B30500002200",
+                previousBalance = 459
+            ),
+            TransactionInfo(
+                terminalId = 199, terminalName = "物販端末", processId = 70, processName = "物販",
+                year = 2025, month = 11, day = 29,
+                inLine = 111, inStation = 44, outLine = 177, outStation = 101,
+                balance = 831, sequence = 2293760, region = 0,
+                transactionType = "物販", rawData = "C7460000337D6F2CB1653F0300002300",
+                previousBalance = 1459
             )
         )
         
-        currentTransactions = mockTransactions
-        filteredTransactions = mockTransactions
+        // Update UI with mock data
+        balanceTextView.text = "¥831"
+        statusTextView.text = "Mock data loaded"
+        cardTypeTextView.text = "ICOCA"
+        cardTypeTextView.setBackgroundColor(0xFF4CAF50.toInt())
+        cardTypeTextView.setTextColor(0xFFFFFFFF.toInt())
         
-        cardTypeTextView.text = "Suica"
-        cardTypeTextView.setTextColor(0xFF4CAF50.toInt())
-        balanceTextView.text = "¥1230"
+        displayTransactions(mockTransactions)
         
-        updateTransactionDisplay()
+        Toast.makeText(this, languageManager.getString("mock_data_toast"), Toast.LENGTH_SHORT).show()
+        addLog("Mock data loaded: ${mockTransactions.size} transactions")
+    }
+    
+    /**
+     * 検索機能のセットアップ
+     */
+    private fun setupSearchFunctionality() {
+        // テキスト入力のリスナー
+        searchEditText.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: android.text.Editable?) {
+                currentFilter = currentFilter.copy(searchText = s?.toString() ?: "")
+                applyFilter()
+            }
+        })
         
-        statusTextView.text = languageManager.getString("status_success")
-        addLog("Mock data loaded (5 title taps)")
+        // フィルターボタンのリスナー
+        filterTypeButton.setOnClickListener {
+            showFilterTypeDialog()
+        }
+        
+        filterDateButton.setOnClickListener {
+            showDateFilterDialog()
+        }
+        
+        filterAmountButton.setOnClickListener {
+            showAmountFilterDialog()
+        }
+    }
+    
+    /**
+     * フィルターを適用（スレッドセーフ）
+     */
+    private fun applyFilter() {
+        runOnUiThread {
+            filteredTransactions = if (currentFilter.isActive()) {
+                currentTransactions.filter { it.matchesFilter(currentFilter) }
+            } else {
+                currentTransactions
+            }
+            
+            updateTransactionDisplay()
+        }
+    }
+    
+    /**
+     * 取引表示を更新
+     */
+    private fun updateTransactionDisplay() {
+        transactionAdapter.updateTransactions(filteredTransactions)
+    }
+    
+    /**
+     * 検索セクションの展開・折りたたみを設定
+     */
+    private fun setupSearchExpandCollapse() {
+        searchHeader.setOnClickListener {
+            toggleSearchExpansion()
+        }
+    }
+    
+    /**
+     * 検索セクションの展開・折りたたみを切り替え
+     */
+    private fun toggleSearchExpansion() {
+        isSearchExpanded = !isSearchExpanded
+        
+        if (isSearchExpanded) {
+            // 展開アニメーション
+            searchContent.visibility = View.VISIBLE
+            searchExpandIcon.setImageResource(R.drawable.ic_expand_less)
+            
+            // スムーズな展開アニメーション
+            searchContent.alpha = 0f
+            searchContent.translationY = -20f
+            searchContent.animate()
+                .alpha(1f)
+                .translationY(0f)
+                .setDuration(200)
+                .start()
+        } else {
+            // 折りたたみアニメーション
+            searchExpandIcon.setImageResource(R.drawable.ic_expand_more)
+            
+            // スムーズな折りたたみアニメーション
+            searchContent.animate()
+                .alpha(0f)
+                .translationY(-20f)
+                .setDuration(200)
+                .withEndAction {
+                    searchContent.visibility = View.GONE
+                }
+                .start()
+        }
+    }
+    
+    /**
+     * フィルター種別ダイアログを表示
+     */
+    private fun showFilterTypeDialog() {
+        val types = arrayOf(
+            languageManager.getString("filter_all"),
+            languageManager.getString("filter_charge"),
+            languageManager.getString("filter_purchase"),
+            languageManager.getString("filter_transit")
+        )
+        
+        val filterTypes = arrayOf(
+            FilterType.ALL,
+            FilterType.CHARGE,
+            FilterType.PURCHASE,
+            FilterType.TRANSIT
+        )
+        
+        val currentIndex = filterTypes.indexOf(currentFilter.filterType)
+        
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle(languageManager.getString("filter_type"))
+            .setSingleChoiceItems(types, currentIndex) { dialog, which ->
+                currentFilter = currentFilter.copy(filterType = filterTypes[which])
+                applyFilter()
+                updateFilterButtonTexts()
+            }
+            .setNegativeButton(languageManager.getString("clear_search")) { dialog, _ ->
+                currentFilter = TransactionFilter()
+                applyFilter()
+                updateFilterButtonTexts()
+                searchEditText.text?.clear()
+                dialog.dismiss()
+            }
+            .show()
+    }
+    
+    /**
+     * 日付フィルターダイアログを表示
+     */
+    private fun showDateFilterDialog() {
+        val calendar = Calendar.getInstance()
+        val currentYear = calendar.get(Calendar.YEAR)
+        val currentMonth = calendar.get(Calendar.MONTH)
+        val currentDay = calendar.get(Calendar.DAY_OF_MONTH)
+        
+        // 開始日ダイアログ
+        val startDateDialog = android.app.DatePickerDialog(
+            this,
+            { _, year, month, dayOfMonth ->
+                val startDateCalendar = Calendar.getInstance()
+                startDateCalendar.set(year, month, dayOfMonth, 0, 0, 0)
+                startDateCalendar.set(Calendar.MILLISECOND, 0)
+                val startTime = startDateCalendar.timeInMillis
+                
+                // 終了日ダイアログ
+                val endDateDialog = android.app.DatePickerDialog(
+                    this,
+                    { _, endYear, endMonth, endDayOfMonth ->
+                        val endDateCalendar = Calendar.getInstance()
+                        endDateCalendar.set(endYear, endMonth, endDayOfMonth, 23, 59, 59)
+                        endDateCalendar.set(Calendar.MILLISECOND, 999)
+                        val endTime = endDateCalendar.timeInMillis
+                        
+                        currentFilter = currentFilter.copy(
+                            startDate = startTime,
+                            endDate = endTime
+                        )
+                        applyFilter()
+                        updateFilterButtonTexts()
+                    },
+                    currentYear,
+                    currentMonth,
+                    currentDay
+                )
+                endDateDialog.setTitle("終了日を選択")
+                endDateDialog.show()
+            },
+            currentYear,
+            currentMonth,
+            currentDay
+        )
+        startDateDialog.setTitle("開始日を選択")
+        startDateDialog.show()
+    }
+    
+    /**
+     * 金額フィルターダイアログを表示
+     */
+    private fun showAmountFilterDialog() {
+        val context = this
+        val dialogView = layoutInflater.inflate(R.layout.dialog_amount_filter, null)
+        val minAmountEditText = dialogView.findViewById<android.widget.EditText>(R.id.minAmountEditText)
+        val maxAmountEditText = dialogView.findViewById<android.widget.EditText>(R.id.maxAmountEditText)
+        
+        // 現在の値を設定
+        currentFilter.minAmount?.let { minAmountEditText.setText(it.toString()) }
+        currentFilter.maxAmount?.let { maxAmountEditText.setText(it.toString()) }
+        
+        androidx.appcompat.app.AlertDialog.Builder(context)
+            .setTitle("金額範囲を設定")
+            .setView(dialogView)
+            .setPositiveButton("適用") { dialog, _ ->
+                val minAmountStr = minAmountEditText.text.toString().trim()
+                val maxAmountStr = maxAmountEditText.text.toString().trim()
+                
+                val minAmount = if (minAmountStr.isEmpty()) null else minAmountStr.toIntOrNull()
+                val maxAmount = if (maxAmountStr.isEmpty()) null else maxAmountStr.toIntOrNull()
+                
+                // 入力値の検証
+                if (minAmount != null && minAmount < 0) {
+                    Toast.makeText(this, getString(R.string.error_negative_min_amount), Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+                
+                if (maxAmount != null && maxAmount < 0) {
+                    Toast.makeText(this, getString(R.string.error_negative_max_amount), Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+                
+                if (minAmount != null && maxAmount != null && minAmount > maxAmount) {
+                    Toast.makeText(this, getString(R.string.error_invalid_amount_range), Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+                
+                currentFilter = currentFilter.copy(
+                    minAmount = minAmount,
+                    maxAmount = maxAmount
+                )
+                applyFilter()
+                updateFilterButtonTexts()
+                dialog.dismiss()
+            }
+            .setNegativeButton("キャンセル") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .setNeutralButton("クリア") { dialog, _ ->
+                currentFilter = currentFilter.copy(
+                    minAmount = null,
+                    maxAmount = null
+                )
+                applyFilter()
+                updateFilterButtonTexts()
+                dialog.dismiss()
+            }
+            .show()
+    }
+    
+    /**
+     * フィルターボタンのテキストを更新
+     */
+    private fun updateFilterButtonTexts() {
+        // 種別ボタン
+        filterTypeButton.text = when (currentFilter.filterType) {
+            FilterType.ALL -> languageManager.getString("filter_all")
+            FilterType.CHARGE -> languageManager.getString("filter_charge")
+            FilterType.PURCHASE -> languageManager.getString("filter_purchase")
+            FilterType.TRANSIT -> languageManager.getString("filter_transit")
+        }
+        
+        // 日付ボタン
+        filterDateButton.text = if (currentFilter.startDate != null || currentFilter.endDate != null) {
+            "日付✓"
+        } else {
+            languageManager.getString("filter_date")
+        }
+        
+        // 金額ボタン
+        filterAmountButton.text = if (currentFilter.minAmount != null || currentFilter.maxAmount != null) {
+            "金額✓"
+        } else {
+            languageManager.getString("filter_amount")
+        }
+    }
+    
+    override fun onTransactionsReceived(transactions: List<TransactionInfo>) {
+        runOnUiThread {
+            displayTransactions(transactions)
+        }
+        addLog("Received ${transactions.size} transactions from NFCReader")
+    }
+    
+    private fun openTransactionDetail(transaction: TransactionInfo) {
+        val intent = android.content.Intent(this, TransactionDetailActivity::class.java)
+        intent.putExtra("TRANSACTION", transaction)
+        startActivity(intent)
     }
     
     private fun addLog(message: String) {
-        val timestamp = SimpleDateFormat("HH:mm:ss.SSS", Locale.getDefault()).format(Date())
-        val logMessage = "[$timestamp] $message"
+        val timestamp = java.text.SimpleDateFormat("HH:mm:ss.SSS", java.util.Locale.getDefault()).format(java.util.Date())
+        val logEntry = "[$timestamp] $message"
+        
+        android.util.Log.d("ICPeek", logEntry)
         
         runOnUiThread {
-            val currentLog = logTextView.text.toString()
-            logTextView.text = if (currentLog.isEmpty()) {
-                logMessage
+            val currentLogs = logTextView.text.toString()
+            val newLogs = if (currentLogs == "Debug logs will appear here...") {
+                logEntry
             } else {
-                "$currentLog\n$logMessage"
+                // StringBuilderを使用してメモリ効率を改善
+                StringBuilder(currentLogs.length + logEntry.length + 1)
+                    .append(currentLogs)
+                    .append("\n")
+                    .append(logEntry)
+                    .toString()
             }
+            
+            // Keep only last 50 log lines to avoid memory issues
+            val logLines = newLogs.split("\n")
+            val limitedLogs = if (logLines.size > 50) {
+                logLines.takeLast(50).joinToString("\n")
+            } else {
+                newLogs
+            }
+            
+            logTextView.text = limitedLogs
         }
-        
-        Log.d("MainActivity", message)
+    }
+    
+    private fun ByteArray.toHexString(): String {
+        return this.joinToString("") { "%02X".format(it) }
     }
 }
