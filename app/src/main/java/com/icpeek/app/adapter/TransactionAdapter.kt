@@ -6,7 +6,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.icpeek.app.R
-import com.icpeek.app.model.TransactionInfo
+import com.icpeek.shared.model.TransactionInfo
 
 /**
  * 取引リスト用のRecyclerViewアダプター
