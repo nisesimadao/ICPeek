@@ -5,8 +5,10 @@ import com.icpeek.shared.model.CardInfo
 import com.icpeek.shared.model.TransactionInfo
 import com.icpeek.shared.parser.BalanceParser
 import kotlinx.coroutines.delay
+import kotlin.ExperimentalStdlibApi
 
-expect class NFCReader() {
+@OptIn(ExperimentalStdlibApi::class)
+expect class NFCReader {
     suspend fun readCard(): CardInfo?
 }
 
@@ -16,7 +18,7 @@ class NFCReaderCommon {
     
     suspend fun processCardData(idm: ByteArray, readFunction: suspend (ByteArray) -> ByteArray?): CardInfo? {
         try {
-            delay(50) // Add delay to ensure stable connection
+            kotlinx.coroutines.delay(50) // Add delay to ensure stable connection
             
             // Based on CardReader-master, use service code 0x090F and read 10 blocks for history
             val readCommand = felicaService.createReadWithoutEncryptionCommand(idm, 0x090F)
@@ -62,7 +64,7 @@ class NFCReaderCommon {
                         try {
                             val altCommand = felicaService.createReadWithoutEncryptionCommand(idm, serviceCode)
                             val altResponse = readFunction(altCommand)
-                            
+                           
                             if (altResponse != null && altResponse.size >= 13) {
                                 val altBalance = balanceParser.parseBalance(altResponse)
                                 if (altBalance > 0) {
@@ -79,7 +81,7 @@ class NFCReaderCommon {
                             // Continue to next service code
                         }
                         
-                        delay(30)
+                        kotlinx.coroutines.delay(30)
                     }
                 }
             }

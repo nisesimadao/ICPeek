@@ -5,8 +5,8 @@ import android.nfc.Tag
 import android.nfc.tech.NfcF
 import android.content.Context
 import com.icpeek.shared.nfc.NFCReader
-import com.icpeek.shared.model.CardInfo
 import com.icpeek.shared.nfc.NFCReaderCommon
+import com.icpeek.shared.model.CardInfo
 import kotlinx.coroutines.delay
 
 actual class NFCReader(private val context: Context? = null) {
@@ -31,7 +31,7 @@ actual class NFCReader(private val context: Context? = null) {
                 idm = getIdmFromTag(nfcF),
                 readFunction = { command ->
                     try {
-                        delay(20) // Small delay between commands
+                        kotlinx.coroutines.delay(20) // Small delay between commands
                         nfcF.transceive(command)
                     } catch (e: Exception) {
                         null

@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -15,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.textfield.TextInputEditText;
 import com.icpeek.app.R;
 import java.lang.NullPointerException;
 import java.lang.Override;
@@ -40,6 +42,18 @@ public final class ActivityMainBinding implements ViewBinding {
   public final LinearLayout debugSection;
 
   @NonNull
+  public final Button exportCsvButton;
+
+  @NonNull
+  public final Button filterAmountButton;
+
+  @NonNull
+  public final Button filterDateButton;
+
+  @NonNull
+  public final Button filterTypeButton;
+
+  @NonNull
   public final RecyclerView historyRecyclerView;
 
   @NonNull
@@ -55,6 +69,18 @@ public final class ActivityMainBinding implements ViewBinding {
   public final ProgressBar progressBar;
 
   @NonNull
+  public final LinearLayout searchContent;
+
+  @NonNull
+  public final TextInputEditText searchEditText;
+
+  @NonNull
+  public final ImageView searchExpandIcon;
+
+  @NonNull
+  public final LinearLayout searchHeader;
+
+  @NonNull
   public final LinearLayout statusLayout;
 
   @NonNull
@@ -66,9 +92,13 @@ public final class ActivityMainBinding implements ViewBinding {
   private ActivityMainBinding(@NonNull CoordinatorLayout rootView,
       @NonNull MaterialCardView balanceCard, @NonNull TextView balanceTextView,
       @NonNull TextView cardTypeTextView, @NonNull Button copyHistoryButton,
-      @NonNull LinearLayout debugSection, @NonNull RecyclerView historyRecyclerView,
+      @NonNull LinearLayout debugSection, @NonNull Button exportCsvButton,
+      @NonNull Button filterAmountButton, @NonNull Button filterDateButton,
+      @NonNull Button filterTypeButton, @NonNull RecyclerView historyRecyclerView,
       @NonNull TextView historyTitleTextView, @NonNull TextView instructionTextView,
       @NonNull TextView logTextView, @NonNull ProgressBar progressBar,
+      @NonNull LinearLayout searchContent, @NonNull TextInputEditText searchEditText,
+      @NonNull ImageView searchExpandIcon, @NonNull LinearLayout searchHeader,
       @NonNull LinearLayout statusLayout, @NonNull TextView statusTextView,
       @NonNull TextView titleTextView) {
     this.rootView = rootView;
@@ -77,11 +107,19 @@ public final class ActivityMainBinding implements ViewBinding {
     this.cardTypeTextView = cardTypeTextView;
     this.copyHistoryButton = copyHistoryButton;
     this.debugSection = debugSection;
+    this.exportCsvButton = exportCsvButton;
+    this.filterAmountButton = filterAmountButton;
+    this.filterDateButton = filterDateButton;
+    this.filterTypeButton = filterTypeButton;
     this.historyRecyclerView = historyRecyclerView;
     this.historyTitleTextView = historyTitleTextView;
     this.instructionTextView = instructionTextView;
     this.logTextView = logTextView;
     this.progressBar = progressBar;
+    this.searchContent = searchContent;
+    this.searchEditText = searchEditText;
+    this.searchExpandIcon = searchExpandIcon;
+    this.searchHeader = searchHeader;
     this.statusLayout = statusLayout;
     this.statusTextView = statusTextView;
     this.titleTextView = titleTextView;
@@ -144,6 +182,30 @@ public final class ActivityMainBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.exportCsvButton;
+      Button exportCsvButton = ViewBindings.findChildViewById(rootView, id);
+      if (exportCsvButton == null) {
+        break missingId;
+      }
+
+      id = R.id.filterAmountButton;
+      Button filterAmountButton = ViewBindings.findChildViewById(rootView, id);
+      if (filterAmountButton == null) {
+        break missingId;
+      }
+
+      id = R.id.filterDateButton;
+      Button filterDateButton = ViewBindings.findChildViewById(rootView, id);
+      if (filterDateButton == null) {
+        break missingId;
+      }
+
+      id = R.id.filterTypeButton;
+      Button filterTypeButton = ViewBindings.findChildViewById(rootView, id);
+      if (filterTypeButton == null) {
+        break missingId;
+      }
+
       id = R.id.historyRecyclerView;
       RecyclerView historyRecyclerView = ViewBindings.findChildViewById(rootView, id);
       if (historyRecyclerView == null) {
@@ -174,6 +236,30 @@ public final class ActivityMainBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.searchContent;
+      LinearLayout searchContent = ViewBindings.findChildViewById(rootView, id);
+      if (searchContent == null) {
+        break missingId;
+      }
+
+      id = R.id.searchEditText;
+      TextInputEditText searchEditText = ViewBindings.findChildViewById(rootView, id);
+      if (searchEditText == null) {
+        break missingId;
+      }
+
+      id = R.id.searchExpandIcon;
+      ImageView searchExpandIcon = ViewBindings.findChildViewById(rootView, id);
+      if (searchExpandIcon == null) {
+        break missingId;
+      }
+
+      id = R.id.searchHeader;
+      LinearLayout searchHeader = ViewBindings.findChildViewById(rootView, id);
+      if (searchHeader == null) {
+        break missingId;
+      }
+
       id = R.id.statusLayout;
       LinearLayout statusLayout = ViewBindings.findChildViewById(rootView, id);
       if (statusLayout == null) {
@@ -193,9 +279,10 @@ public final class ActivityMainBinding implements ViewBinding {
       }
 
       return new ActivityMainBinding((CoordinatorLayout) rootView, balanceCard, balanceTextView,
-          cardTypeTextView, copyHistoryButton, debugSection, historyRecyclerView,
-          historyTitleTextView, instructionTextView, logTextView, progressBar, statusLayout,
-          statusTextView, titleTextView);
+          cardTypeTextView, copyHistoryButton, debugSection, exportCsvButton, filterAmountButton,
+          filterDateButton, filterTypeButton, historyRecyclerView, historyTitleTextView,
+          instructionTextView, logTextView, progressBar, searchContent, searchEditText,
+          searchExpandIcon, searchHeader, statusLayout, statusTextView, titleTextView);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

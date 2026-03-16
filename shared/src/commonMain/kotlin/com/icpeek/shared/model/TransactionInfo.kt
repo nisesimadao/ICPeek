@@ -1,6 +1,7 @@
 package com.icpeek.shared.model
 
 import kotlinx.serialization.Serializable
+import kotlin.format
 
 @Serializable
 data class TransactionInfo(
@@ -55,6 +56,60 @@ data class TransactionInfo(
         }
     }
     
+    fun getFormattedAmountChange(): String {
+        val change = getAmountChange()
+        return when {
+            change > 0 -> "+¥$change"
+            change < 0 -> "-¥${-change}"
+            else -> ""
+        }
+    }
+    
+    fun getAmountChangeColor(): Int {
+        val change = getAmountChange()
+        return when {
+            change > 0 -> 0xFF4CAF50.toInt() // Green
+            change < 0 -> 0xFFF44336.toInt() // Red
+            else -> 0xFF757575.toInt() // Gray
+        }
+    }
+    
+    fun getInStationName(): String {
+        return when (inStation) {
+            73 -> "新大阪"
+            74 -> "大阪"
+            75 -> "淀屋橋"
+            76 -> "天満橋"
+            77 -> "北新地"
+            78 -> "桜橋"
+            79 -> "福島"
+            80 -> "野田"
+            81 -> "南森ノ宮"
+            82 -> "西九条"
+            83 -> "御幣島"
+            84 -> "加島"
+            else -> "駅名 $inStation"
+        }
+    }
+    
+    fun getOutStationName(): String {
+        return when (outStation) {
+            73 -> "新大阪"
+            74 -> "大阪"
+            75 -> "淀屋橋"
+            76 -> "天満橋"
+            77 -> "北新地"
+            78 -> "桜橋"
+            79 -> "福島"
+            80 -> "野田"
+            81 -> "南森ノ宮"
+            82 -> "西九条"
+            83 -> "御幣島"
+            84 -> "加島"
+            else -> "駅名 $outStation"
+        }
+    }
+    
     private fun isFarePayment(): Boolean {
         return processId in listOf(
             1, 4, 5, 6, 19, 132, 133
@@ -92,15 +147,6 @@ data class TransactionInfo(
                 rawChange < 0
             }
             else -> false
-        }
-    }
-    
-    fun getFormattedAmountChange(): String {
-        val change = getAmountChange()
-        return when {
-            change > 0 -> "+¥$change"
-            change < 0 -> "-¥${-change}"
-            else -> ""
         }
     }
 }

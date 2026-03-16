@@ -1,7 +1,9 @@
 package com.icpeek.shared.parser
 
 import com.icpeek.shared.model.TransactionInfo
+import kotlin.ExperimentalStdlibApi
 
+@OptIn(ExperimentalStdlibApi::class)
 class BalanceParser {
 
     /**
@@ -113,7 +115,8 @@ class BalanceParser {
             val month = (mixInt shr 5) and 0x00F
             val day = mixInt and 0x01F
             
-            val fullYear = if (year < 80) 2000 + year else 1900 + year
+            // Fix: 0-99 range means 2000-2099, not 1900-1999
+            val fullYear = 2000 + year
             
             // Line and station codes
             val inLine = response[blockOffset + 6].toInt() and 0xFF

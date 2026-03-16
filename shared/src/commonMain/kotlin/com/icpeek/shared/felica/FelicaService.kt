@@ -1,5 +1,9 @@
 package com.icpeek.shared.felica
 
+import kotlin.ExperimentalStdlibApi
+import kotlin.format
+
+@OptIn(ExperimentalStdlibApi::class)
 class FelicaService {
 
     companion object {
@@ -52,8 +56,8 @@ class FelicaService {
         repeat(8) { command.add(0) }
         
         command.add(1) // service code length (2byte)
-        command.add((serviceCode and 0xFF).toByte()) // low byte of service code
-        command.add((serviceCode shr 8).toByte()) // high byte of service code
+        command.add((serviceCode shr 8).toByte()) // high byte of service code (big endian)
+        command.add((serviceCode and 0xFF).toByte()) // low byte of service code (big endian)
         command.add(1) // number of block
         
         command.add(0x80.toByte()) // ブロックエレメント上位バイト
